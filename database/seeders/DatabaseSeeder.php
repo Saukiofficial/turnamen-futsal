@@ -2,14 +2,9 @@
 
 namespace Database\Seeders;
 
-use App\Models\Announcement;
-use App\Models\AssessmentCriterion;
 use App\Models\AuditLog;
 use App\Models\Event;
 use App\Models\EventPosition;
-use App\Models\Participant;
-use App\Models\Registration;
-use App\Models\SelectionSession;
 use App\Models\User;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
@@ -33,7 +28,7 @@ class DatabaseSeeder extends Seeder
             ]
         );
 
-        $verifikator = User::updateOrCreate(
+        User::updateOrCreate(
             ['email' => 'verifikator@futsalreg.test'],
             [
                 'name' => 'Budi Santoso (Verifikator)',
@@ -44,7 +39,7 @@ class DatabaseSeeder extends Seeder
             ]
         );
 
-        $pelatih = User::updateOrCreate(
+        User::updateOrCreate(
             ['email' => 'pelatih@futsalreg.test'],
             [
                 'name' => 'Coach Danu (Head Coach)',
@@ -104,162 +99,7 @@ class DatabaseSeeder extends Seeder
             );
         }
 
-        // 4. Create Selection Sessions (idempoten)
-        SelectionSession::firstOrCreate(
-            ['event_id' => $event->id, 'name' => 'Sesi 1 - Pagi (Goalkeeper & Anchor)'],
-            [
-                'date' => now()->addDays(25)->toDateString(),
-                'start_time' => '08:00:00',
-                'end_time' => '11:30:00',
-                'location' => 'Lapangan Utama A',
-                'capacity' => 60,
-            ]
-        );
-
-        SelectionSession::firstOrCreate(
-            ['event_id' => $event->id, 'name' => 'Sesi 2 - Siang (Flank & Pivot)'],
-            [
-                'date' => now()->addDays(25)->toDateString(),
-                'start_time' => '13:30:00',
-                'end_time' => '17:00:00',
-                'location' => 'Lapangan Utama B',
-                'capacity' => 80,
-            ]
-        );
-
-        // 5. Create Assessment Criteria (idempoten)
-        $criteria = [
-            ['name' => 'Teknik Dasar (Passing & Control)', 'weight' => 25],
-            ['name' => 'Pemahaman Taktik & Posisi', 'weight' => 20],
-            ['name' => 'Fisik, Kelincahan & Kecepatan', 'weight' => 20],
-            ['name' => 'Shooting & Finishing', 'weight' => 20],
-            ['name' => 'Kedisiplinan & Sikap', 'weight' => 15],
-        ];
-
-        foreach ($criteria as $crit) {
-            AssessmentCriterion::firstOrCreate(
-                ['event_id' => $event->id, 'name' => $crit['name']],
-                [
-                    'weight' => $crit['weight'],
-                    'min_score' => 0,
-                    'max_score' => 100,
-                    'active' => true,
-                ]
-            );
-        }
-
-        // 6. Create Sample Registrations (skip jika event sudah punya pendaftar)
-        $alreadyHasRegistrations = Registration::where('event_id', $event->id)->exists();
-
-        if (! $alreadyHasRegistrations) {
-            $sampleParticipants = [
-                [
-                    'name' => 'Ahmad Rizky Pratama',
-                    'nik' => '3529011204040001',
-                    'birth_place' => 'Sumenep',
-                    'birth_date' => '2004-04-12',
-                    'school' => 'SMA Negeri 1 Sumenep',
-                    'position' => 'Anchor',
-                    'status' => 'lolos_administrasi',
-                ],
-                [
-                    'name' => 'Dimas Maulana Akbar',
-                    'nik' => '3529011508050002',
-                    'birth_place' => 'Pamekasan',
-                    'birth_date' => '2005-08-15',
-                    'school' => 'SMK Negeri 2 Pamekasan',
-                    'position' => 'Flank',
-                    'status' => 'menunggu_verifikasi',
-                ],
-                [
-                    'name' => 'Fahri Ramadhan',
-                    'nik' => '3529012301030003',
-                    'birth_place' => 'Surabaya',
-                    'birth_date' => '2003-01-23',
-                    'school' => 'Universitas Wiraraja',
-                    'position' => 'Goalkeeper',
-                    'status' => 'lolos_administrasi',
-                ],
-                [
-                    'name' => 'Bayu Setiawan',
-                    'nik' => '3529010509060004',
-                    'birth_place' => 'Sumenep',
-                    'birth_date' => '2006-09-05',
-                    'school' => 'MAN 1 Sumenep',
-                    'position' => 'Pivot',
-                    'status' => 'perlu_perbaikan',
-                    'note' => 'Foto 3x4 kurang jelas/gelap. Mohon upload ulang foto terbaru dengan pencahayaan baik.',
-                    'revision_fields' => ['photo'],
-                ],
-                [
-                    'name' => 'Rendra Bagus Wicaksono',
-                    'nik' => '3529011812040005',
-                    'birth_place' => 'Bangkalan',
-                    'birth_date' => '2004-12-18',
-                    'school' => 'SMA Negeri 2 Sumenep',
-                    'position' => 'Flank',
-                    'status' => 'menunggu_verifikasi',
-                ],
-                [
-                    'name' => 'Irfan Hakim Putra',
-                    'nik' => '3529010207050006',
-                    'birth_place' => 'Sampang',
-                    'birth_date' => '2005-07-02',
-                    'school' => 'Klub Futsal Garuda',
-                    'position' => 'Pivot',
-                    'status' => 'lolos_administrasi',
-                ],
-            ];
-
-            foreach ($sampleParticipants as $index => $data) {
-                $participant = new Participant([
-                    'full_name' => $data['name'],
-                    'birth_place' => $data['birth_place'],
-                    'birth_date' => $data['birth_date'],
-                    'school_name' => $data['school'],
-                ]);
-                $participant->setNik($data['nik']);
-                $participant->save();
-
-                $accessCode = Registration::generateAccessCode();
-                $regNumber = 'FTS-'.date('Y').'-'.str_pad((string) ($index + 1), 6, '0', STR_PAD_LEFT);
-
-                Registration::create([
-                    'event_id' => $event->id,
-                    'participant_id' => $participant->id,
-                    'registration_number' => $regNumber,
-                    'access_code_hash' => Hash::make($accessCode),
-                    'access_code_plain' => $accessCode,
-                    'qr_token' => Registration::generateQrToken(),
-                    'primary_position' => $data['position'],
-                    'photo_path' => null,
-                    'registration_status' => 'submitted',
-                    'verification_status' => $data['status'],
-                    'selection_status' => 'menunggu_seleksi',
-                    'submitted_at' => now()->subDays(rand(1, 8)),
-                    'verified_at' => $data['status'] === 'lolos_administrasi' ? now()->subDays(1) : null,
-                    'verified_by' => $data['status'] === 'lolos_administrasi' ? $verifikator->id : null,
-                    'verification_notes' => $data['note'] ?? null,
-                    'revision_fields' => $data['revision_fields'] ?? null,
-                ]);
-            }
-        }
-
-        // 7. Create Sample Announcement (skip jika sudah ada)
-        Announcement::firstOrCreate(
-            ['slug' => 'panduan-tata-tertib-seleksi-futsal-2026'],
-            [
-                'event_id' => $event->id,
-                'title' => 'Panduan & Tata Tertib Pendaftaran Seleksi Futsal 2026',
-                'content' => "Selamat datang calon pemain futsal 2026!\n\nPastikan Anda mengisi formulir biodata dengan teliti sesuai KTP/identitas resmi. Foto formal 3x4 wajib berlatar polos dan wajah terlihat jelas.\n\nBagi peserta yang lolos verifikasi berkas administrasi, kartu peserta resmi dapat diunduh langsung melalui menu Cek Status dengan memasukkan nomor pendaftaran dan kode akses rahasia.",
-                'audience_type' => 'publik',
-                'publish_at' => now()->subDays(5),
-                'status' => 'published',
-                'created_by' => $admin->id,
-            ]
-        );
-
-        // 8. Audit Log
+        // 4. Audit Log
         AuditLog::log('system_initialized', $event, null, ['status' => 'open', 'event' => $event->name]);
     }
 }
