@@ -38,6 +38,28 @@ class Team extends Model
         'verified_at' => 'datetime',
     ];
 
+    protected $appends = [
+        'logo_url',
+    ];
+
+    /**
+     * Get the publicly accessible URL for the team's logo.
+     */
+    public function getLogoUrlAttribute(): ?string
+    {
+        if (! $this->logo_path) {
+            return null;
+        }
+
+        if (str_starts_with($this->logo_path, 'http://') || str_starts_with($this->logo_path, 'https://')) {
+            return $this->logo_path;
+        }
+
+        $cleanPath = ltrim(str_replace(['public/', 'storage/'], '', $this->logo_path), '/');
+
+        return asset('storage/'.$cleanPath);
+    }
+
     public function event(): BelongsTo
     {
         return $this->belongsTo(Event::class);

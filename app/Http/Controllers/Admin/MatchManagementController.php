@@ -29,13 +29,12 @@ class MatchManagementController extends Controller
         if ($event) {
             $teams = Team::where('event_id', $event->id)
                 ->where('verification_status', 'lolos_administrasi')
-                ->select('id', 'team_name', 'school_name', 'logo_path')
                 ->get()
                 ->map(fn ($t) => [
                     'id' => $t->id,
                     'name' => $t->team_name,
                     'school' => $t->school_name,
-                    'logo_url' => $t->logo_path ? asset('storage/'.$t->logo_path) : null,
+                    'logo_url' => $t->logo_url,
                 ]);
 
             $matches = TournamentMatch::with(['teamA', 'teamB', 'winnerTeam'])
@@ -61,13 +60,13 @@ class MatchManagementController extends Controller
                         'id' => $m->teamA->id,
                         'name' => $m->teamA->team_name,
                         'school' => $m->teamA->school_name,
-                        'logo_url' => $m->teamA->logo_path ? asset('storage/'.$m->teamA->logo_path) : null,
+                        'logo_url' => $m->teamA->logo_url,
                     ] : null,
                     'team_b' => $m->teamB ? [
                         'id' => $m->teamB->id,
                         'name' => $m->teamB->team_name,
                         'school' => $m->teamB->school_name,
-                        'logo_url' => $m->teamB->logo_path ? asset('storage/'.$m->teamB->logo_path) : null,
+                        'logo_url' => $m->teamB->logo_url,
                     ] : null,
                     'winner_id' => $m->winner_team_id,
                     'next_match_id' => $m->next_match_id,

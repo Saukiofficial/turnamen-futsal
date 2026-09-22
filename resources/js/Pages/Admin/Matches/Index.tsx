@@ -783,10 +783,35 @@ export default function AdminMatchesIndex({ event, verifiedTeams, matches }: Adm
                                                         : 'bg-slate-50/70 border-slate-100 text-slate-800'
                                                 }`}>
                                                     <div className="flex items-center gap-2.5 truncate pr-2">
-                                                        <Shield className="w-4 h-4 text-slate-400 shrink-0" />
-                                                        <span className="text-xs truncate">
-                                                            {m.team_a?.name || 'Menunggu Hasil'}
-                                                        </span>
+                                                        <div className="w-8 h-8 rounded-xl bg-white border border-slate-200 p-1 flex items-center justify-center shrink-0 overflow-hidden shadow-2xs relative">
+                                                            {m.team_a?.logo_url ? (
+                                                                <>
+                                                                    <img 
+                                                                        src={m.team_a.logo_url} 
+                                                                        alt={m.team_a.name} 
+                                                                        className="w-full h-full object-contain"
+                                                                        onError={(e) => {
+                                                                            e.currentTarget.style.display = 'none';
+                                                                            const sibling = e.currentTarget.nextElementSibling;
+                                                                            if (sibling) sibling.classList.remove('hidden');
+                                                                        }}
+                                                                    />
+                                                                    <Shield className="w-3.5 h-3.5 text-slate-400 hidden" />
+                                                                </>
+                                                            ) : (
+                                                                <Shield className="w-3.5 h-3.5 text-slate-400" />
+                                                            )}
+                                                        </div>
+                                                        <div className="truncate">
+                                                            <span className="text-xs font-bold block truncate">
+                                                                {m.team_a?.name || 'Menunggu Hasil'}
+                                                            </span>
+                                                            {m.team_a?.school && (
+                                                                <span className="text-[10px] text-slate-500 block truncate -mt-0.5">
+                                                                    {m.team_a.school}
+                                                                </span>
+                                                            )}
+                                                        </div>
                                                     </div>
                                                     <div className="font-mono text-sm font-bold flex items-center gap-1">
                                                         <span>{m.score_a ?? '-'}</span>
@@ -803,10 +828,35 @@ export default function AdminMatchesIndex({ event, verifiedTeams, matches }: Adm
                                                         : 'bg-slate-50/70 border-slate-100 text-slate-800'
                                                 }`}>
                                                     <div className="flex items-center gap-2.5 truncate pr-2">
-                                                        <Shield className="w-4 h-4 text-slate-400 shrink-0" />
-                                                        <span className="text-xs truncate">
-                                                            {m.team_b?.name || 'Menunggu Hasil'}
-                                                        </span>
+                                                        <div className="w-8 h-8 rounded-xl bg-white border border-slate-200 p-1 flex items-center justify-center shrink-0 overflow-hidden shadow-2xs relative">
+                                                            {m.team_b?.logo_url ? (
+                                                                <>
+                                                                    <img 
+                                                                        src={m.team_b.logo_url} 
+                                                                        alt={m.team_b.name} 
+                                                                        className="w-full h-full object-contain"
+                                                                        onError={(e) => {
+                                                                            e.currentTarget.style.display = 'none';
+                                                                            const sibling = e.currentTarget.nextElementSibling;
+                                                                            if (sibling) sibling.classList.remove('hidden');
+                                                                        }}
+                                                                    />
+                                                                    <Shield className="w-3.5 h-3.5 text-slate-400 hidden" />
+                                                                </>
+                                                            ) : (
+                                                                <Shield className="w-3.5 h-3.5 text-slate-400" />
+                                                            )}
+                                                        </div>
+                                                        <div className="truncate">
+                                                            <span className="text-xs font-bold block truncate">
+                                                                {m.team_b?.name || 'Menunggu Hasil'}
+                                                            </span>
+                                                            {m.team_b?.school && (
+                                                                <span className="text-[10px] text-slate-500 block truncate -mt-0.5">
+                                                                    {m.team_b.school}
+                                                                </span>
+                                                            )}
+                                                        </div>
                                                     </div>
                                                     <div className="font-mono text-sm font-bold flex items-center gap-1">
                                                         <span>{m.score_b ?? '-'}</span>
@@ -925,7 +975,7 @@ export default function AdminMatchesIndex({ event, verifiedTeams, matches }: Adm
 
                                                 {/* Select Team A & Team B */}
                                                 <div className="grid grid-cols-1 sm:grid-cols-11 gap-2 items-center">
-                                                    <div className="sm:col-span-5 space-y-1">
+                                                    <div className="sm:col-span-5 space-y-1.5">
                                                         <label className="text-[10px] font-bold uppercase text-slate-500 block">
                                                             Tim A
                                                         </label>
@@ -941,13 +991,27 @@ export default function AdminMatchesIndex({ event, verifiedTeams, matches }: Adm
                                                                 </option>
                                                             ))}
                                                         </select>
+                                                        {matchup.team_a_id && getTeamById(matchup.team_a_id) && (
+                                                            <div className="flex items-center gap-2 px-2 py-1 rounded-lg bg-slate-50 border border-slate-200">
+                                                                <div className="w-5 h-5 rounded-md bg-white border border-slate-200 p-0.5 flex items-center justify-center shrink-0 overflow-hidden">
+                                                                    {getTeamById(matchup.team_a_id)?.logo_url ? (
+                                                                        <img src={getTeamById(matchup.team_a_id)?.logo_url!} alt="" className="w-full h-full object-contain" />
+                                                                    ) : (
+                                                                        <Shield className="w-3 h-3 text-slate-400" />
+                                                                    )}
+                                                                </div>
+                                                                <span className="text-[11px] text-slate-600 font-medium truncate">
+                                                                    {getTeamById(matchup.team_a_id)?.school}
+                                                                </span>
+                                                            </div>
+                                                        )}
                                                     </div>
 
                                                     <div className="sm:col-span-1 text-center font-bold text-xs text-slate-400">
                                                         VS
                                                     </div>
 
-                                                    <div className="sm:col-span-5 space-y-1">
+                                                    <div className="sm:col-span-5 space-y-1.5">
                                                         <label className="text-[10px] font-bold uppercase text-slate-500 block">
                                                             Tim B
                                                         </label>
@@ -963,6 +1027,20 @@ export default function AdminMatchesIndex({ event, verifiedTeams, matches }: Adm
                                                                 </option>
                                                             ))}
                                                         </select>
+                                                        {matchup.team_b_id && getTeamById(matchup.team_b_id) && (
+                                                            <div className="flex items-center gap-2 px-2 py-1 rounded-lg bg-slate-50 border border-slate-200">
+                                                                <div className="w-5 h-5 rounded-md bg-white border border-slate-200 p-0.5 flex items-center justify-center shrink-0 overflow-hidden">
+                                                                    {getTeamById(matchup.team_b_id)?.logo_url ? (
+                                                                        <img src={getTeamById(matchup.team_b_id)?.logo_url!} alt="" className="w-full h-full object-contain" />
+                                                                    ) : (
+                                                                        <Shield className="w-3 h-3 text-slate-400" />
+                                                                    )}
+                                                                </div>
+                                                                <span className="text-[11px] text-slate-600 font-medium truncate">
+                                                                    {getTeamById(matchup.team_b_id)?.school}
+                                                                </span>
+                                                            </div>
+                                                        )}
                                                     </div>
                                                 </div>
 
@@ -1016,24 +1094,70 @@ export default function AdminMatchesIndex({ event, verifiedTeams, matches }: Adm
                                             <span className="text-[10px] font-bold text-amber-400 uppercase block">Jalur Semifinal 1</span>
                                             
                                             {/* QF 1 */}
-                                            <div className="p-2 rounded-lg bg-slate-900 border border-slate-700/80 space-y-1">
+                                            <div className="p-2 rounded-lg bg-slate-900 border border-slate-700/80 space-y-1.5">
                                                 <div className="flex justify-between text-[10px] text-slate-400">
                                                     <span>QF 1 ({builderMatchups[0]?.court_name})</span>
                                                     <span>{builderMatchups[0]?.match_time ? new Date(builderMatchups[0].match_time).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : 'Jam: -'}</span>
                                                 </div>
-                                                <div className="font-bold text-white text-xs truncate">
-                                                    {getTeamById(builderMatchups[0]?.team_a_id)?.name || 'Tim A'} <span className="text-slate-500 font-normal">vs</span> {getTeamById(builderMatchups[0]?.team_b_id)?.name || 'Tim B'}
+                                                <div className="space-y-1">
+                                                    <div className="flex items-center gap-1.5 truncate">
+                                                        <div className="w-4 h-4 rounded-sm bg-slate-800 border border-slate-700 p-0.5 flex items-center justify-center shrink-0 overflow-hidden">
+                                                            {getTeamById(builderMatchups[0]?.team_a_id)?.logo_url ? (
+                                                                <img src={getTeamById(builderMatchups[0]?.team_a_id)?.logo_url!} alt="" className="w-full h-full object-contain" />
+                                                            ) : (
+                                                                <Shield className="w-2.5 h-2.5 text-slate-500" />
+                                                            )}
+                                                        </div>
+                                                        <span className="font-bold text-white text-xs truncate">
+                                                            {getTeamById(builderMatchups[0]?.team_a_id)?.name || 'Tim A'}
+                                                        </span>
+                                                    </div>
+                                                    <div className="flex items-center gap-1.5 truncate">
+                                                        <div className="w-4 h-4 rounded-sm bg-slate-800 border border-slate-700 p-0.5 flex items-center justify-center shrink-0 overflow-hidden">
+                                                            {getTeamById(builderMatchups[0]?.team_b_id)?.logo_url ? (
+                                                                <img src={getTeamById(builderMatchups[0]?.team_b_id)?.logo_url!} alt="" className="w-full h-full object-contain" />
+                                                            ) : (
+                                                                <Shield className="w-2.5 h-2.5 text-slate-500" />
+                                                            )}
+                                                        </div>
+                                                        <span className="font-bold text-white text-xs truncate">
+                                                            {getTeamById(builderMatchups[0]?.team_b_id)?.name || 'Tim B'}
+                                                        </span>
+                                                    </div>
                                                 </div>
                                             </div>
 
                                             {/* QF 2 */}
-                                            <div className="p-2 rounded-lg bg-slate-900 border border-slate-700/80 space-y-1">
+                                            <div className="p-2 rounded-lg bg-slate-900 border border-slate-700/80 space-y-1.5">
                                                 <div className="flex justify-between text-[10px] text-slate-400">
                                                     <span>QF 2 ({builderMatchups[1]?.court_name})</span>
                                                     <span>{builderMatchups[1]?.match_time ? new Date(builderMatchups[1].match_time).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : 'Jam: -'}</span>
                                                 </div>
-                                                <div className="font-bold text-white text-xs truncate">
-                                                    {getTeamById(builderMatchups[1]?.team_a_id)?.name || 'Tim A'} <span className="text-slate-500 font-normal">vs</span> {getTeamById(builderMatchups[1]?.team_b_id)?.name || 'Tim B'}
+                                                <div className="space-y-1">
+                                                    <div className="flex items-center gap-1.5 truncate">
+                                                        <div className="w-4 h-4 rounded-sm bg-slate-800 border border-slate-700 p-0.5 flex items-center justify-center shrink-0 overflow-hidden">
+                                                            {getTeamById(builderMatchups[1]?.team_a_id)?.logo_url ? (
+                                                                <img src={getTeamById(builderMatchups[1]?.team_a_id)?.logo_url!} alt="" className="w-full h-full object-contain" />
+                                                            ) : (
+                                                                <Shield className="w-2.5 h-2.5 text-slate-500" />
+                                                            )}
+                                                        </div>
+                                                        <span className="font-bold text-white text-xs truncate">
+                                                            {getTeamById(builderMatchups[1]?.team_a_id)?.name || 'Tim A'}
+                                                        </span>
+                                                    </div>
+                                                    <div className="flex items-center gap-1.5 truncate">
+                                                        <div className="w-4 h-4 rounded-sm bg-slate-800 border border-slate-700 p-0.5 flex items-center justify-center shrink-0 overflow-hidden">
+                                                            {getTeamById(builderMatchups[1]?.team_b_id)?.logo_url ? (
+                                                                <img src={getTeamById(builderMatchups[1]?.team_b_id)?.logo_url!} alt="" className="w-full h-full object-contain" />
+                                                            ) : (
+                                                                <Shield className="w-2.5 h-2.5 text-slate-500" />
+                                                            )}
+                                                        </div>
+                                                        <span className="font-bold text-white text-xs truncate">
+                                                            {getTeamById(builderMatchups[1]?.team_b_id)?.name || 'Tim B'}
+                                                        </span>
+                                                    </div>
                                                 </div>
                                             </div>
 
@@ -1047,24 +1171,70 @@ export default function AdminMatchesIndex({ event, verifiedTeams, matches }: Adm
                                             <span className="text-[10px] font-bold text-amber-400 uppercase block">Jalur Semifinal 2</span>
                                             
                                             {/* QF 3 */}
-                                            <div className="p-2 rounded-lg bg-slate-900 border border-slate-700/80 space-y-1">
+                                            <div className="p-2 rounded-lg bg-slate-900 border border-slate-700/80 space-y-1.5">
                                                 <div className="flex justify-between text-[10px] text-slate-400">
                                                     <span>QF 3 ({builderMatchups[2]?.court_name})</span>
                                                     <span>{builderMatchups[2]?.match_time ? new Date(builderMatchups[2].match_time).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : 'Jam: -'}</span>
                                                 </div>
-                                                <div className="font-bold text-white text-xs truncate">
-                                                    {getTeamById(builderMatchups[2]?.team_a_id)?.name || 'Tim A'} <span className="text-slate-500 font-normal">vs</span> {getTeamById(builderMatchups[2]?.team_b_id)?.name || 'Tim B'}
+                                                <div className="space-y-1">
+                                                    <div className="flex items-center gap-1.5 truncate">
+                                                        <div className="w-4 h-4 rounded-sm bg-slate-800 border border-slate-700 p-0.5 flex items-center justify-center shrink-0 overflow-hidden">
+                                                            {getTeamById(builderMatchups[2]?.team_a_id)?.logo_url ? (
+                                                                <img src={getTeamById(builderMatchups[2]?.team_a_id)?.logo_url!} alt="" className="w-full h-full object-contain" />
+                                                            ) : (
+                                                                <Shield className="w-2.5 h-2.5 text-slate-500" />
+                                                            )}
+                                                        </div>
+                                                        <span className="font-bold text-white text-xs truncate">
+                                                            {getTeamById(builderMatchups[2]?.team_a_id)?.name || 'Tim A'}
+                                                        </span>
+                                                    </div>
+                                                    <div className="flex items-center gap-1.5 truncate">
+                                                        <div className="w-4 h-4 rounded-sm bg-slate-800 border border-slate-700 p-0.5 flex items-center justify-center shrink-0 overflow-hidden">
+                                                            {getTeamById(builderMatchups[2]?.team_b_id)?.logo_url ? (
+                                                                <img src={getTeamById(builderMatchups[2]?.team_b_id)?.logo_url!} alt="" className="w-full h-full object-contain" />
+                                                            ) : (
+                                                                <Shield className="w-2.5 h-2.5 text-slate-500" />
+                                                            )}
+                                                        </div>
+                                                        <span className="font-bold text-white text-xs truncate">
+                                                            {getTeamById(builderMatchups[2]?.team_b_id)?.name || 'Tim B'}
+                                                        </span>
+                                                    </div>
                                                 </div>
                                             </div>
 
                                             {/* QF 4 */}
-                                            <div className="p-2 rounded-lg bg-slate-900 border border-slate-700/80 space-y-1">
+                                            <div className="p-2 rounded-lg bg-slate-900 border border-slate-700/80 space-y-1.5">
                                                 <div className="flex justify-between text-[10px] text-slate-400">
                                                     <span>QF 4 ({builderMatchups[3]?.court_name})</span>
                                                     <span>{builderMatchups[3]?.match_time ? new Date(builderMatchups[3].match_time).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : 'Jam: -'}</span>
                                                 </div>
-                                                <div className="font-bold text-white text-xs truncate">
-                                                    {getTeamById(builderMatchups[3]?.team_a_id)?.name || 'Tim A'} <span className="text-slate-500 font-normal">vs</span> {getTeamById(builderMatchups[3]?.team_b_id)?.name || 'Tim B'}
+                                                <div className="space-y-1">
+                                                    <div className="flex items-center gap-1.5 truncate">
+                                                        <div className="w-4 h-4 rounded-sm bg-slate-800 border border-slate-700 p-0.5 flex items-center justify-center shrink-0 overflow-hidden">
+                                                            {getTeamById(builderMatchups[3]?.team_a_id)?.logo_url ? (
+                                                                <img src={getTeamById(builderMatchups[3]?.team_a_id)?.logo_url!} alt="" className="w-full h-full object-contain" />
+                                                            ) : (
+                                                                <Shield className="w-2.5 h-2.5 text-slate-500" />
+                                                            )}
+                                                        </div>
+                                                        <span className="font-bold text-white text-xs truncate">
+                                                            {getTeamById(builderMatchups[3]?.team_a_id)?.name || 'Tim A'}
+                                                        </span>
+                                                    </div>
+                                                    <div className="flex items-center gap-1.5 truncate">
+                                                        <div className="w-4 h-4 rounded-sm bg-slate-800 border border-slate-700 p-0.5 flex items-center justify-center shrink-0 overflow-hidden">
+                                                            {getTeamById(builderMatchups[3]?.team_b_id)?.logo_url ? (
+                                                                <img src={getTeamById(builderMatchups[3]?.team_b_id)?.logo_url!} alt="" className="w-full h-full object-contain" />
+                                                            ) : (
+                                                                <Shield className="w-2.5 h-2.5 text-slate-500" />
+                                                            )}
+                                                        </div>
+                                                        <span className="font-bold text-white text-xs truncate">
+                                                            {getTeamById(builderMatchups[3]?.team_b_id)?.name || 'Tim B'}
+                                                        </span>
+                                                    </div>
                                                 </div>
                                             </div>
 
@@ -1135,12 +1305,30 @@ export default function AdminMatchesIndex({ event, verifiedTeams, matches }: Adm
 
                         <form onSubmit={handleSaveScore} className="p-6 space-y-4 overflow-y-auto flex-1">
                             {/* Competitor match banner */}
-                            <div className="p-3.5 bg-slate-50 rounded-xl border border-slate-200 text-center space-y-1">
+                            <div className="p-3.5 bg-slate-50 rounded-xl border border-slate-200 text-center space-y-2">
                                 <span className="text-[10px] uppercase font-bold text-slate-400 block">{getRoundTitle(selectedMatch.round)}</span>
-                                <div className="text-sm font-black text-navy-950 flex items-center justify-center gap-2">
-                                    <span>{selectedMatch.team_a?.name || 'Tim A'}</span>
-                                    <span className="text-slate-400 text-xs">VS</span>
-                                    <span>{selectedMatch.team_b?.name || 'Tim B'}</span>
+                                <div className="text-sm font-black text-navy-950 flex items-center justify-center gap-4">
+                                    <div className="flex items-center gap-2 max-w-[180px] truncate">
+                                        <div className="w-6 h-6 rounded-md bg-white border border-slate-200 p-0.5 flex items-center justify-center shrink-0 overflow-hidden">
+                                            {selectedMatch.team_a?.logo_url ? (
+                                                <img src={selectedMatch.team_a.logo_url} alt="" className="w-full h-full object-contain" />
+                                            ) : (
+                                                <Shield className="w-3.5 h-3.5 text-slate-400" />
+                                            )}
+                                        </div>
+                                        <span className="truncate">{selectedMatch.team_a?.name || 'Tim A'}</span>
+                                    </div>
+                                    <span className="text-slate-400 text-xs font-normal shrink-0">VS</span>
+                                    <div className="flex items-center gap-2 max-w-[180px] truncate">
+                                        <div className="w-6 h-6 rounded-md bg-white border border-slate-200 p-0.5 flex items-center justify-center shrink-0 overflow-hidden">
+                                            {selectedMatch.team_b?.logo_url ? (
+                                                <img src={selectedMatch.team_b.logo_url} alt="" className="w-full h-full object-contain" />
+                                            ) : (
+                                                <Shield className="w-3.5 h-3.5 text-slate-400" />
+                                            )}
+                                        </div>
+                                        <span className="truncate">{selectedMatch.team_b?.name || 'Tim B'}</span>
+                                    </div>
                                 </div>
                             </div>
 

@@ -129,11 +129,23 @@ export default function MatchesIndex({
                 isWinner ? 'bg-amber-500/10 font-bold' : isDefeated ? 'opacity-40 line-through grayscale' : ''
             }`}>
                 <div className="flex items-center gap-2.5 min-w-0 pr-2">
-                    <div className="w-7 h-7 rounded-lg bg-slate-100 border border-slate-200 p-0.5 flex items-center justify-center shrink-0 overflow-hidden">
+                    <div className="w-8 h-8 rounded-xl bg-white border border-slate-200/90 p-1 flex items-center justify-center shrink-0 overflow-hidden shadow-2xs relative">
                         {team?.logo_url ? (
-                            <img src={team.logo_url} alt={team.name} className="w-full h-full object-contain" />
+                            <>
+                                <img 
+                                    src={team.logo_url} 
+                                    alt={team.name} 
+                                    className="w-full h-full object-contain" 
+                                    onError={(e) => {
+                                        e.currentTarget.style.display = 'none';
+                                        const sibling = e.currentTarget.nextElementSibling;
+                                        if (sibling) sibling.classList.remove('hidden');
+                                    }}
+                                />
+                                <Shield className="w-4 h-4 text-slate-400 hidden" />
+                            </>
                         ) : (
-                            <Shield className="w-3.5 h-3.5 text-slate-400" />
+                            <Shield className="w-4 h-4 text-slate-400" />
                         )}
                     </div>
                     <div className="truncate">
@@ -340,9 +352,21 @@ export default function MatchesIndex({
                                     <div className="grid grid-cols-9 gap-2 items-center text-center">
                                         {/* Team A */}
                                         <div className="col-span-3 flex flex-col items-center space-y-2">
-                                            <div className="w-16 h-16 rounded-2xl bg-slate-900 border border-slate-800 p-2 flex items-center justify-center shadow-md">
+                                            <div className="w-16 h-16 rounded-2xl bg-slate-900 border border-slate-800 p-2 flex items-center justify-center shadow-md overflow-hidden relative">
                                                 {liveMatch.team_a?.logo_url ? (
-                                                    <img src={liveMatch.team_a.logo_url} alt={liveMatch.team_a.name} className="w-full h-full object-contain" />
+                                                    <>
+                                                        <img 
+                                                            src={liveMatch.team_a.logo_url} 
+                                                            alt={liveMatch.team_a.name} 
+                                                            className="w-full h-full object-contain"
+                                                            onError={(e) => {
+                                                                e.currentTarget.style.display = 'none';
+                                                                const sibling = e.currentTarget.nextElementSibling;
+                                                                if (sibling) sibling.classList.remove('hidden');
+                                                            }}
+                                                        />
+                                                        <Shield className="w-8 h-8 text-slate-400 hidden" />
+                                                    </>
                                                 ) : (
                                                     <Shield className="w-8 h-8 text-slate-400" />
                                                 )}
@@ -378,9 +402,21 @@ export default function MatchesIndex({
 
                                         {/* Team B */}
                                         <div className="col-span-3 flex flex-col items-center space-y-2">
-                                            <div className="w-16 h-16 rounded-2xl bg-slate-900 border border-slate-800 p-2 flex items-center justify-center shadow-md">
+                                            <div className="w-16 h-16 rounded-2xl bg-slate-900 border border-slate-800 p-2 flex items-center justify-center shadow-md overflow-hidden relative">
                                                 {liveMatch.team_b?.logo_url ? (
-                                                    <img src={liveMatch.team_b.logo_url} alt={liveMatch.team_b.name} className="w-full h-full object-contain" />
+                                                    <>
+                                                        <img 
+                                                            src={liveMatch.team_b.logo_url} 
+                                                            alt={liveMatch.team_b.name} 
+                                                            className="w-full h-full object-contain"
+                                                            onError={(e) => {
+                                                                e.currentTarget.style.display = 'none';
+                                                                const sibling = e.currentTarget.nextElementSibling;
+                                                                if (sibling) sibling.classList.remove('hidden');
+                                                            }}
+                                                        />
+                                                        <Shield className="w-8 h-8 text-slate-400 hidden" />
+                                                    </>
                                                 ) : (
                                                     <Shield className="w-8 h-8 text-slate-400" />
                                                 )}
@@ -433,9 +469,21 @@ export default function MatchesIndex({
             {championTeam && (
                 <section className="bg-linear-to-r from-amber-600 via-amber-500 to-yellow-500 text-navy-950 py-6 border-b border-amber-400 shadow-md">
                     <div className="max-w-5xl mx-auto px-4 sm:px-6 flex flex-col sm:flex-row items-center justify-center gap-4 text-center sm:text-left">
-                        <div className="w-16 h-16 rounded-2xl bg-white p-2 shadow-lg flex items-center justify-center shrink-0">
+                        <div className="w-16 h-16 rounded-2xl bg-white p-2 shadow-lg flex items-center justify-center shrink-0 overflow-hidden relative">
                             {championTeam.logo_url ? (
-                                <img src={championTeam.logo_url} alt={championTeam.name} className="w-full h-full object-contain" />
+                                <>
+                                    <img 
+                                        src={championTeam.logo_url} 
+                                        alt={championTeam.name} 
+                                        className="w-full h-full object-contain"
+                                        onError={(e) => {
+                                            e.currentTarget.style.display = 'none';
+                                            const sibling = e.currentTarget.nextElementSibling;
+                                            if (sibling) sibling.classList.remove('hidden');
+                                        }}
+                                    />
+                                    <Trophy className="w-8 h-8 text-amber-500 hidden" />
+                                </>
                             ) : (
                                 <Trophy className="w-8 h-8 text-amber-500" />
                             )}
