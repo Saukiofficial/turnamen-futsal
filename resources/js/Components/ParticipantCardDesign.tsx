@@ -44,7 +44,9 @@ export default function ParticipantCardDesign({ participant }: ParticipantCardDe
                         crossOrigin="anonymous"
                     />
                     <div className="min-w-0">
-                        <p className="text-[9px] leading-[14px] font-black tracking-[0.12em] uppercase truncate">SAF League</p>
+                        <div className="h-[14px] overflow-hidden">
+                            <p className="text-[9px] leading-[14px] font-black tracking-[0.12em] uppercase whitespace-nowrap">SAF League</p>
+                        </div>
                         <p className="text-[6px] leading-[9px] font-semibold text-blue-200 tracking-[0.08em] uppercase">Kartu Peserta Turnamen</p>
                     </div>
                 </div>
@@ -67,30 +69,40 @@ export default function ParticipantCardDesign({ participant }: ParticipantCardDe
                             <UserRound className="w-6 h-6 text-slate-300" />
                         )}
                     </div>
-                    <span className="px-1 py-1 rounded bg-blue-50 border border-blue-100 text-[6px] leading-[9px] font-black text-blue-800 text-center uppercase truncate">
-                        {participant.primary_position}
-                    </span>
+                    <div className="px-1 py-1 rounded bg-blue-50 border border-blue-100 text-center overflow-hidden">
+                        <span className="block text-[6px] leading-[9px] font-black text-blue-800 uppercase whitespace-nowrap">
+                            {participant.primary_position}
+                        </span>
+                    </div>
                 </div>
 
                 <div className="min-w-0 flex-1 flex flex-col justify-between">
                     <div className="min-w-0">
                         <p className="text-[6px] leading-[9px] uppercase tracking-[0.12em] text-slate-400 font-bold">Nama Peserta</p>
-                        <h1 className="text-[12px] leading-[17px] font-black text-navy-950 truncate">
-                            {participant.full_name}
-                        </h1>
-                        <p className="text-[7px] leading-[11px] text-slate-500 font-semibold truncate mt-0.5">
-                            {participant.school_name || 'Sekolah belum dicantumkan'}
-                        </p>
+                        <div className="h-[17px] overflow-hidden">
+                            <h1 className="text-[12px] leading-[17px] font-black text-navy-950 whitespace-nowrap">
+                                {participant.full_name}
+                            </h1>
+                        </div>
+                        <div className="h-[14px] overflow-hidden mt-0.5">
+                            <p className="text-[7px] leading-[13px] text-slate-500 font-semibold whitespace-nowrap">
+                                {participant.school_name || 'Sekolah belum dicantumkan'}
+                            </p>
+                        </div>
                     </div>
 
                     <div className="rounded-md bg-slate-50 border-l-[3px] border-blue-600 px-2 py-1.5 min-w-0">
                         <p className="text-[5.5px] leading-[8px] uppercase tracking-wider text-slate-400 font-bold">Event</p>
-                        <p className="text-[7px] leading-[11px] font-extrabold text-slate-800 truncate">{participant.event_name}</p>
+                        <div className="h-[13px] overflow-hidden">
+                            <p className="text-[7px] leading-[12px] font-extrabold text-slate-800 whitespace-nowrap">{participant.event_name}</p>
+                        </div>
                         {participant.location && (
-                            <p className="text-[6px] leading-[10px] text-slate-500 truncate flex items-center gap-1">
-                                <MapPin className="w-2 h-2 shrink-0 text-blue-600" />
-                                <span className="truncate">{participant.location}</span>
-                            </p>
+                            <div className="h-[12px] overflow-hidden">
+                                <p className="text-[6px] leading-[11px] text-slate-500 flex items-center gap-1 whitespace-nowrap">
+                                    <MapPin className="w-2 h-2 shrink-0 text-blue-600" />
+                                    <span>{participant.location}</span>
+                                </p>
+                            </div>
                         )}
                     </div>
 
