@@ -1,5 +1,5 @@
 import React from 'react';
-import { Head, Link, useForm } from '@inertiajs/react';
+import { Head, Link, router, useForm } from '@inertiajs/react';
 import AdminShell from '@/Layouts/AdminShell';
 import StatusBadge from '@/Components/StatusBadge';
 import { 
@@ -13,7 +13,8 @@ import {
     CheckCircle2, 
     Clock, 
     AlertCircle,
-    Download
+    Download,
+    Trash2
 } from 'lucide-react';
 
 interface TeamItem {
@@ -65,6 +66,14 @@ export default function AdminTeamsIndex({ teams, filters, counts }: AdminTeamsPr
     const handleStatusFilter = (status: string) => {
         searchForm.setData('status', status);
         searchForm.get(route('admin.teams.index', { status, search: searchForm.data.search }));
+    };
+
+    const handleDelete = (team: TeamItem) => {
+        if (confirm(`Hapus pendaftaran tim ${team.team_name} (${team.registration_number})? Roster, logo, dan dokumen tim juga akan dihapus.`)) {
+            router.delete(route('admin.teams.destroy', team.id), {
+                preserveScroll: true,
+            });
+        }
     };
 
     return (
@@ -223,13 +232,24 @@ export default function AdminTeamsIndex({ teams, filters, counts }: AdminTeamsPr
                                             </td>
 
                                             <td className="px-5 py-4 text-right">
-                                                <Link
-                                                    href={route('admin.teams.show', team.id)}
-                                                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-amber-50 hover:text-amber-800 text-slate-700 font-bold text-xs transition-colors"
-                                                >
-                                                    <Eye className="w-3.5 h-3.5" />
-                                                    <span>Verifikasi</span>
-                                                </Link>
+                                                <div className="inline-flex items-center justify-end gap-1.5">
+                                                    <Link
+                                                        href={route('admin.teams.show', team.id)}
+                                                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-amber-50 hover:text-amber-800 text-slate-700 font-bold text-xs transition-colors"
+                                                    >
+                                                        <Eye className="w-3.5 h-3.5" />
+                                                        <span>Verifikasi</span>
+                                                    </Link>
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => handleDelete(team)}
+                                                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-rose-600 hover:text-rose-700 hover:bg-rose-50 font-bold text-xs transition-colors"
+                                                        title="Hapus pendaftaran tim"
+                                                    >
+                                                        <Trash2 className="w-3.5 h-3.5" />
+                                                        <span>Hapus</span>
+                                                    </button>
+                                                </div>
                                             </td>
                                         </tr>
                                     ))

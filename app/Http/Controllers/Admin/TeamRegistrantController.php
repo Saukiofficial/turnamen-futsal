@@ -141,4 +141,24 @@ class TeamRegistrantController extends Controller
 
         return back()->with('success', 'Status verifikasi tim berhasil diperbarui.');
     }
+
+    public function destroy(Request $request, Team $team): RedirectResponse
+    {
+        abort_unless($request->user()?->isAdmin(), 403);
+
+        $storedFiles = array_filter([$team->logo_path, $team->document_path]);
+
+        AuditLog::log('team_registration_deleted', $team, [
+            'registration_number' => $team->registration_number,
+            'team_name' => $team->team_name,
+        ]);
+
+        $team->delete();
+
+        if ($storedFiles !== []) {
+            Storage::disk('public')->delete($storedFiles);
+        }
+
+        return back()->with('success', 'Pendaftaran tim berhasil dihapus.');
+    }
 }

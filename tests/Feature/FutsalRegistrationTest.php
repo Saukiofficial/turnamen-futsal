@@ -136,6 +136,81 @@ class FutsalRegistrationTest extends TestCase
         $this->assertModelExists($registration);
     }
 
+    public function test_registration_admin_can_delete_a_team_registration(): void
+    {
+        Storage::fake('public');
+        Storage::disk('public')->put('teams/delete-logo.png', 'logo');
+        Storage::disk('public')->put('teams/delete-document.pdf', 'document');
+        $admin = User::where('role', 'super_admin')->firstOrFail();
+        $event = Event::firstOrFail();
+        $participant = Participant::create([
+            'full_name' => 'Team Delete Player',
+            'nisn' => '0077665544',
+            'nik_encrypted' => Crypt::encryptString('3201776655443322'),
+            'nik_hash' => hash('sha256', '3201776655443322'),
+            'birth_place' => 'Bandung',
+            'birth_date' => '2008-03-03',
+        ]);
+        $team = Team::create([
+            'event_id' => $event->id,
+            'team_name' => 'Tim Akan Dihapus',
+            'school_name' => 'SMAN Hapus',
+            'head_coach' => 'Coach Hapus',
+            'manager_name' => 'Manager Hapus',
+            'manager_phone' => '081234567890',
+            'logo_path' => 'teams/delete-logo.png',
+            'document_path' => 'teams/delete-document.pdf',
+            'registration_number' => Team::generateRegistrationNumber($event->id),
+            'access_code_plain' => 'TEAMDEL1',
+            'access_code_hash' => bcrypt('TEAMDEL1'),
+            'qr_token' => Team::generateQrToken(),
+            'verification_status' => 'menunggu_verifikasi',
+            'submitted_at' => now(),
+        ]);
+        $teamPlayer = TeamPlayer::create([
+            'team_id' => $team->id,
+            'participant_id' => $participant->id,
+            'nisn' => $participant->nisn,
+        ]);
+
+        $response = $this->actingAs($admin)->delete(route('admin.teams.destroy', $team));
+
+        $response->assertRedirect()->assertSessionHas('success');
+        $this->assertModelMissing($team);
+        $this->assertModelMissing($teamPlayer);
+        $this->assertModelExists($participant);
+        Storage::disk('public')->assertMissing(['teams/delete-logo.png', 'teams/delete-document.pdf']);
+        $this->assertDatabaseHas('audit_logs', [
+            'action' => 'team_registration_deleted',
+            'auditable_id' => $team->id,
+        ]);
+    }
+
+    public function test_non_registration_admin_cannot_delete_a_team_registration(): void
+    {
+        $officer = User::where('role', 'checkin_officer')->firstOrFail();
+        $event = Event::firstOrFail();
+        $team = Team::create([
+            'event_id' => $event->id,
+            'team_name' => 'Tim Dilindungi',
+            'school_name' => 'SMAN Aman',
+            'head_coach' => 'Coach Aman',
+            'manager_name' => 'Manager Aman',
+            'manager_phone' => '081298765432',
+            'registration_number' => Team::generateRegistrationNumber($event->id),
+            'access_code_plain' => 'TEAMSAFE',
+            'access_code_hash' => bcrypt('TEAMSAFE'),
+            'qr_token' => Team::generateQrToken(),
+            'verification_status' => 'menunggu_verifikasi',
+            'submitted_at' => now(),
+        ]);
+
+        $response = $this->actingAs($officer)->delete(route('admin.teams.destroy', $team));
+
+        $response->assertForbidden();
+        $this->assertModelExists($team);
+    }
+
     public function test_candidate_can_submit_registration(): void
     {
         Storage::fake('public');

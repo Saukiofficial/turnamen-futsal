@@ -109,6 +109,7 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
     Route::get('/teams', [TeamRegistrantController::class, 'index'])->name('teams.index');
     Route::get('/teams-alias', [TeamRegistrantController::class, 'index'])->name('team-registrants.index');
     Route::get('/teams/{id}', [TeamRegistrantController::class, 'show'])->name('teams.show');
+    Route::delete('/teams/{team}', [TeamRegistrantController::class, 'destroy'])->name('teams.destroy');
     Route::get('/teams-alias/{id}', [TeamRegistrantController::class, 'show'])->name('team-registrants.show');
     Route::post('/teams/{id}/verify', [TeamRegistrantController::class, 'verify'])->name('teams.verify');
 
