@@ -17,7 +17,8 @@ import {
     RefreshCw,
     Radio,
     Tv,
-    ExternalLink
+    ExternalLink,
+    ArrowDown
 } from 'lucide-react';
 
 interface TeamInfo {
@@ -106,6 +107,37 @@ export default function MatchesIndex({
         completed_matches: stats?.completed_matches || 0,
         live_matches: stats?.live_matches || 0,
     };
+
+    const mobileRounds = [
+        {
+            key: 'perempat-final',
+            title: 'Perempat Final',
+            subtitle: '8 Tim Terbaik',
+            matches: safeRounds.perempat_final,
+            emptyMessage: 'Bagan belum dibuat oleh admin.',
+        },
+        {
+            key: 'semifinal',
+            title: 'Semifinal',
+            subtitle: 'Perebutan Tiket Final',
+            matches: safeRounds.semifinal,
+            emptyMessage: 'Menunggu hasil perempat final.',
+        },
+        {
+            key: 'grand-final',
+            title: 'Grand Final',
+            subtitle: 'Perebutan Gelar Juara',
+            matches: safeRounds.final,
+            emptyMessage: 'Menunggu hasil semifinal.',
+        },
+        {
+            key: 'juara-tiga',
+            title: 'Perebutan Juara 3',
+            subtitle: 'Penentuan Tempat Ketiga',
+            matches: safeRounds.juara_3,
+            emptyMessage: 'Menunggu tim gugur di semifinal.',
+        },
+    ];
 
     // Find champion team if final is completed
     const finalMatch = safeRounds.final?.[0];
@@ -506,29 +538,31 @@ export default function MatchesIndex({
             {/* Main Interactive Bracket Section */}
             <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 flex-1 w-full space-y-8">
                 {/* View switcher */}
-                <div className="flex items-center justify-between pb-4 border-b border-slate-200">
-                    <div className="flex items-center gap-2">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-slate-200">
+                    <div className="grid grid-cols-2 sm:flex items-center gap-2 w-full sm:w-auto">
                         <button
                             type="button"
                             onClick={() => setViewMode('bracket')}
-                            className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${
+                            className={`px-3 sm:px-4 py-2 rounded-xl text-xs font-bold transition-all ${
                                 viewMode === 'bracket' 
                                     ? 'bg-navy-950 text-white shadow-xs' 
                                     : 'bg-white border border-slate-300 text-slate-700 hover:bg-slate-50'
                             }`}
                         >
-                            Bagan Turnamen (Interactive Bracket)
+                            <span className="sm:hidden">Bagan Turnamen</span>
+                            <span className="hidden sm:inline">Bagan Turnamen (Interactive Bracket)</span>
                         </button>
                         <button
                             type="button"
                             onClick={() => setViewMode('list')}
-                            className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${
+                            className={`px-3 sm:px-4 py-2 rounded-xl text-xs font-bold transition-all ${
                                 viewMode === 'list' 
                                     ? 'bg-navy-950 text-white shadow-xs' 
                                     : 'bg-white border border-slate-300 text-slate-700 hover:bg-slate-50'
                             }`}
                         >
-                            Daftar Jadwal & Skor
+                            <span className="sm:hidden">Jadwal & Skor</span>
+                            <span className="hidden sm:inline">Daftar Jadwal & Skor</span>
                         </button>
                     </div>
 
@@ -540,7 +574,50 @@ export default function MatchesIndex({
 
                 {/* BRACKET VIEW */}
                 {viewMode === 'bracket' && (
-                    <div className="w-full overflow-x-auto pb-8">
+                    <div>
+                        {/* Mobile bracket: rounds flow vertically so every match remains readable. */}
+                        <div className="space-y-3 lg:hidden">
+                            {mobileRounds.map((round, index) => (
+                                <React.Fragment key={round.key}>
+                                    <section className="rounded-2xl border border-slate-200 bg-slate-50/70 p-3.5 space-y-3">
+                                        <div className="flex items-center justify-between gap-3 pb-2 border-b border-slate-200">
+                                            <div>
+                                                <h3 className={`text-sm font-black uppercase tracking-wider ${
+                                                    round.key === 'grand-final' ? 'text-amber-600' : 'text-navy-950'
+                                                }`}>
+                                                    {round.title}
+                                                </h3>
+                                                <span className="text-[11px] text-slate-500 font-medium">{round.subtitle}</span>
+                                            </div>
+                                            <span className="px-2.5 py-1 rounded-full bg-white border border-slate-200 text-[10px] font-bold text-slate-500 shrink-0">
+                                                {round.matches.length} Laga
+                                            </span>
+                                        </div>
+
+                                        <div className="space-y-3">
+                                            {round.matches.length > 0 ? (
+                                                round.matches.map((match) => renderMatchCard(match))
+                                            ) : (
+                                                <div className="p-5 rounded-xl bg-white border border-dashed border-slate-300 text-center text-xs text-slate-400">
+                                                    {round.emptyMessage}
+                                                </div>
+                                            )}
+                                        </div>
+                                    </section>
+
+                                    {index < mobileRounds.length - 1 && (
+                                        <div className="flex justify-center" aria-hidden="true">
+                                            <span className="w-8 h-8 rounded-full bg-navy-950 text-white flex items-center justify-center shadow-sm">
+                                                <ArrowDown className="w-4 h-4" />
+                                            </span>
+                                        </div>
+                                    )}
+                                </React.Fragment>
+                            ))}
+                        </div>
+
+                        {/* Desktop bracket: preserve the side-by-side tournament tree. */}
+                        <div className="hidden lg:block w-full overflow-x-auto pb-8">
                         <div className="min-w-[960px] grid grid-cols-3 gap-8 items-stretch pt-2">
                             {/* Column 1: Perempat Final (Quarterfinals) */}
                             <div className="space-y-4">
@@ -626,6 +703,7 @@ export default function MatchesIndex({
                                     </div>
                                 </div>
                             </div>
+                        </div>
                         </div>
                     </div>
                 )}

@@ -284,7 +284,7 @@ export default function RegistrantShow({ registration }: RegistrantShowProps) {
                                         <span>Status Kehadiran: Hadir</span>
                                     </div>
                                     <p>Check-in tercatat pada: <strong>{registration.attendance.checked_in_at}</strong></p>
-                                    <p>Sesi: {registration.attendance.session_name || 'Sesi Seleksi Standar'}</p>
+                                    <p>Sesi: {registration.attendance.session_name || 'Sesi Turnamen Standar'}</p>
                                 </div>
                             ) : (
                                 <div className="p-4 rounded-xl bg-slate-50 border border-slate-200 text-slate-500 space-y-1">

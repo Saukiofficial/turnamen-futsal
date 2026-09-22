@@ -102,7 +102,7 @@ class DashboardController extends Controller
                         'participant_verified' => 'Verifikator menyetujui berkas pendaftar',
                         'participant_needs_revision' => 'Meminta perbaikan berkas pendaftar',
                         'participant_rejected' => 'Menolak verifikasi administrasi',
-                        'participant_checked_in' => 'Check-in kehadiran seleksi berhasil',
+                        'participant_checked_in' => 'Check-in kehadiran turnamen berhasil',
                         default => $log->action,
                     },
                 ];

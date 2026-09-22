@@ -13,6 +13,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -125,8 +126,7 @@ class TeamRegistrationController extends Controller
             'logo' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
             'document' => ['required', 'file', 'mimes:pdf,jpg,jpeg,png', 'max:5120'], // Surat Rekomendasi & NISN Peserta (1 file)
             'players' => ['nullable', 'array', 'max:14'],
-            'players.*.nisn' => ['required', 'string'],
-            'players.*.jersey_number' => ['nullable', 'string', 'max:4'],
+            'players.*.nisn' => ['required', 'digits:10', 'distinct'],
             'agreement' => ['accepted'],
         ], [
             'team_name.required' => 'Nama tim wajib diisi.',
@@ -140,7 +140,36 @@ class TeamRegistrationController extends Controller
             'agreement.accepted' => 'Anda harus menyetujui pernyataan keabsahan data tim.',
         ]);
 
-        return DB::transaction(function () use ($request, $validated) {
+        $rosterPlayers = collect($validated['players'] ?? [])->map(function (array $playerData) use ($validated) {
+            $nisn = preg_replace('/\D/', '', $playerData['nisn']);
+            $participant = Participant::where('nisn', $nisn)
+                ->whereHas('registrations', fn ($query) => $query->where('event_id', $validated['event_id']))
+                ->first();
+
+            if (! $participant) {
+                throw ValidationException::withMessages([
+                    'players' => "Pemain dengan NISN {$nisn} tidak terdaftar pada event turnamen ini.",
+                ]);
+            }
+
+            $existingTeamPlayer = TeamPlayer::where('participant_id', $participant->id)
+                ->whereHas('team', fn ($query) => $query->where('event_id', $validated['event_id']))
+                ->with('team')
+                ->first();
+
+            if ($existingTeamPlayer) {
+                throw ValidationException::withMessages([
+                    'players' => "Pemain dengan NISN {$nisn} sudah terdaftar pada tim {$existingTeamPlayer->team->team_name}.",
+                ]);
+            }
+
+            return [
+                'participant' => $participant,
+                'nisn' => $nisn,
+            ];
+        });
+
+        return DB::transaction(function () use ($request, $validated, $rosterPlayers) {
             $event = Event::findOrFail($validated['event_id']);
 
             // Upload Logo
@@ -177,27 +206,12 @@ class TeamRegistrationController extends Controller
             ]);
 
             // Save team players roster
-            if (! empty($validated['players'])) {
-                foreach ($validated['players'] as $pData) {
-                    $cleanNisn = preg_replace('/\D/', '', $pData['nisn'] ?? '');
-                    if (empty($cleanNisn)) {
-                        continue;
-                    }
-
-                    $part = Participant::where('nisn', $cleanNisn)->first();
-                    if ($part) {
-                        TeamPlayer::firstOrCreate(
-                            [
-                                'team_id' => $team->id,
-                                'participant_id' => $part->id,
-                            ],
-                            [
-                                'nisn' => $cleanNisn,
-                                'jersey_number' => ! empty($pData['jersey_number']) ? trim($pData['jersey_number']) : null,
-                            ]
-                        );
-                    }
-                }
+            foreach ($rosterPlayers as $rosterPlayer) {
+                TeamPlayer::create([
+                    'team_id' => $team->id,
+                    'participant_id' => $rosterPlayer['participant']->id,
+                    'nisn' => $rosterPlayer['nisn'],
+                ]);
             }
 
             AuditLog::log('team_registered', $team, null, [

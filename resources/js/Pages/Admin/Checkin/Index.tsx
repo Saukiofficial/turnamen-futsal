@@ -9,7 +9,6 @@ import {
     CheckCircle2, 
     Clock, 
     AlertCircle, 
-    Users, 
     ShieldCheck, 
     Camera, 
     Keyboard 
@@ -77,32 +76,47 @@ export default function CheckinIndex({
         }
     };
 
-    const handleConfirm = () => {
-        if (!searchResult?.registration?.id) return;
+    const handleConfirm = (registrationId: number, playerName: string) => {
+        if (!registrationId) return;
 
         router.post(route('admin.checkin.confirm'), {
-            registration_id: searchResult.registration.id,
+            registration_id: registrationId,
             session_id: selectedSessionId || null,
             status: checkinStatus,
         }, {
             onSuccess: () => {
-                setSearchResult(null);
-                setKeyword('');
+                if (searchResult?.type === 'team') {
+                    setSearchResult((current: any) => ({
+                        ...current,
+                        team: {
+                            ...current.team,
+                            players: current.team.players.map((player: any) => (
+                                player.registration_id === registrationId
+                                    ? { ...player, attendance: { status: checkinStatus, checked_in_at: 'Baru saja' } }
+                                    : player
+                            )),
+                        },
+                    }));
+                } else {
+                    setSearchResult(null);
+                    setKeyword('');
+                }
+
                 setFeedbackMessage({
                     type: 'success',
-                    text: `Check-in berhasil dicatat.`,
+                    text: `Identitas ${playerName} cocok dengan roster resmi. Check-in berhasil dicatat.`,
                 });
             },
         });
     };
 
     return (
-        <AdminShell breadcrumbs={[{ label: 'Check-in Seleksi' }]}>
-            <Head title="Check-in Kehadiran Seleksi Futsal" />
+        <AdminShell breadcrumbs={[{ label: 'Check-in Turnamen' }]}>
+            <Head title="Check-in Kehadiran Turnamen Futsal" />
 
             <PageHeader
-                title="Check-in Kehadiran Seleksi"
-                description="Pindai QR token pada kartu peserta atau cari berdasarkan nomor pendaftaran untuk mencatat kehadiran peserta di venue seleksi."
+                title="Check-in Kehadiran Turnamen"
+                description="Pindai QR token pada kartu peserta atau cari berdasarkan nomor pendaftaran untuk mencatat kehadiran peserta di venue turnamen."
                 action={
                     <select
                         value={selectedEventId}
@@ -182,7 +196,7 @@ export default function CheckinIndex({
                             {sessions.length > 0 && (
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
                                     <div>
-                                        <label className="block text-xs font-semibold text-slate-700 mb-1">Sesi Seleksi</label>
+                                        <label className="block text-xs font-semibold text-slate-700 mb-1">Sesi Turnamen</label>
                                         <select
                                             value={selectedSessionId}
                                             onChange={(e) => setSelectedSessionId(Number(e.target.value))}
@@ -257,35 +271,83 @@ export default function CheckinIndex({
                                     </div>
                                 </div>
 
-                                {/* Squad Player Verification List */}
+                                <div className="p-3 bg-white rounded-xl border border-indigo-200 text-xs text-indigo-900 flex items-start gap-2">
+                                    <Camera className="w-4 h-4 text-indigo-600 shrink-0 mt-0.5" />
+                                    <span>
+                                        Cocokkan wajah pemain dengan foto pendaftaran, lalu periksa NISN, tanggal lahir, dan sekolah sebelum menekan tombol verifikasi.
+                                    </span>
+                                </div>
+
+                                {/* Squad Player Identity Verification List */}
                                 <div className="pt-2 border-t border-indigo-100">
                                     <div className="flex items-center justify-between mb-2">
-                                        <span className="text-xs font-bold text-navy-950">Daftar Skuad Pemain Resmi:</span>
+                                        <span className="text-xs font-bold text-navy-950">Verifikasi Identitas Roster Resmi:</span>
                                         <span className="text-[11px] font-semibold text-indigo-600">{searchResult.team.players.length} Pemain</span>
                                     </div>
-                                    <div className="space-y-1.5 max-h-48 overflow-y-auto pr-1">
+                                    <div className="space-y-2 max-h-[32rem] overflow-y-auto pr-1">
                                         {searchResult.team.players.map((p: any) => (
-                                            <div key={p.id} className="p-2 rounded-lg bg-white border border-slate-200 flex items-center justify-between text-xs">
-                                                <div className="flex items-center gap-2 min-w-0">
-                                                    <span className="w-6 h-6 rounded bg-slate-100 font-mono font-bold text-slate-700 flex items-center justify-center text-[11px] shrink-0">
-                                                        #{p.jersey_number}
-                                                    </span>
-                                                    <div className="min-w-0">
-                                                        <span className="font-bold text-slate-900 block truncate">{p.full_name}</span>
-                                                        <span className="text-[10px] text-slate-400 font-mono">NISN: {p.nisn}</span>
+                                            <div key={p.id} className="p-3 rounded-xl bg-white border border-slate-200 text-xs">
+                                                <div className="flex items-start gap-3">
+                                                    <div className="w-14 h-20 rounded-lg bg-slate-100 border border-slate-200 overflow-hidden shrink-0 flex items-center justify-center">
+                                                        {p.photo_url ? (
+                                                            <img src={p.photo_url} alt={`Foto ${p.full_name}`} className="w-full h-full object-cover" />
+                                                        ) : (
+                                                            <Camera className="w-5 h-5 text-slate-400" />
+                                                        )}
+                                                    </div>
+                                                    <div className="min-w-0 flex-1">
+                                                        <div>
+                                                            <span className="font-bold text-slate-900 block">{p.full_name}</span>
+                                                            <span className="text-[10px] text-slate-500">{p.school_name}</span>
+                                                        </div>
+                                                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-1 mt-2 text-[10px] text-slate-600">
+                                                            <span>NISN: <strong className="font-mono text-slate-800">{p.nisn}</strong></span>
+                                                            <span>Lahir: <strong className="text-slate-800">{p.birth_date}</strong></span>
+                                                            <span>Posisi: <strong className="text-slate-800">{p.position}</strong></span>
+                                                        </div>
                                                     </div>
                                                 </div>
-                                                <span className="text-[10px] font-semibold px-2 py-0.5 rounded bg-emerald-50 text-emerald-700 border border-emerald-200 shrink-0">
-                                                    Terverifikasi
-                                                </span>
+
+                                                {p.attendance ? (
+                                                    <div className="mt-3 p-2 rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-800 flex items-center gap-2">
+                                                        <CheckCircle2 className="w-4 h-4 shrink-0" />
+                                                        <span className="font-semibold">Identitas terverifikasi dan check-in pada {p.attendance.checked_in_at}</span>
+                                                    </div>
+                                                ) : p.is_eligible && p.registration_id ? (
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => handleConfirm(p.registration_id, p.full_name)}
+                                                        className="mt-3 w-full h-10 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-bold flex items-center justify-center gap-2 transition-colors"
+                                                    >
+                                                        <ShieldCheck className="w-4 h-4" />
+                                                        <span>Wajah & Identitas Cocok, Izinkan Masuk</span>
+                                                    </button>
+                                                ) : (
+                                                    <div className="mt-3 p-2 rounded-lg bg-rose-50 border border-rose-200 text-rose-800 flex items-center gap-2">
+                                                        <AlertCircle className="w-4 h-4 shrink-0" />
+                                                        <span>Pemain tidak memenuhi syarat roster dan tidak boleh masuk venue.</span>
+                                                    </div>
+                                                )}
                                             </div>
                                         ))}
                                     </div>
                                 </div>
 
-                                <div className="p-3 bg-emerald-50 rounded-xl border border-emerald-200 text-xs text-emerald-800 flex items-center gap-2">
-                                    <ShieldCheck className="w-4 h-4 text-emerald-600 shrink-0" />
-                                    <span>Akreditasi Tim Terverifikasi. Tim berhak memasuki venue & bertanding sesuai jadwal.</span>
+                                <div className={`p-3 rounded-xl border text-xs flex items-center gap-2 ${
+                                    searchResult.team.is_eligible
+                                        ? 'bg-emerald-50 border-emerald-200 text-emerald-800'
+                                        : 'bg-rose-50 border-rose-200 text-rose-800'
+                                }`}>
+                                    {searchResult.team.is_eligible ? (
+                                        <ShieldCheck className="w-4 h-4 text-emerald-600 shrink-0" />
+                                    ) : (
+                                        <AlertCircle className="w-4 h-4 text-rose-600 shrink-0" />
+                                    )}
+                                    <span>
+                                        {searchResult.team.is_eligible
+                                            ? 'Tim terverifikasi. Hanya pemain yang identitasnya cocok dengan roster di atas yang boleh memasuki venue.'
+                                            : 'Tim belum disetujui. Seluruh pemain ditolak masuk sampai verifikasi administrasi tim selesai.'}
+                                    </span>
                                 </div>
                             </div>
                         )}
@@ -310,7 +372,7 @@ export default function CheckinIndex({
                                             {searchResult.registration.full_name}
                                         </h4>
                                         <p className="text-slate-500 font-medium">{searchResult.registration.school_name}</p>
-                                        <div className="pt-1 flex items-center gap-2">
+                                        <div className="pt-1 flex flex-wrap items-center gap-2">
                                             <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-brand-100 text-brand-800">
                                                 Posisi: {searchResult.registration.primary_position}
                                             </span>
@@ -324,6 +386,11 @@ export default function CheckinIndex({
                                                 </span>
                                             )}
                                         </div>
+                                        {searchResult.registration.team_name && (
+                                            <p className="pt-1 text-[11px] text-slate-600">
+                                                Roster: <strong>{searchResult.registration.team_name}</strong>
+                                            </p>
+                                        )}
                                     </div>
                                 </div>
 
@@ -335,7 +402,7 @@ export default function CheckinIndex({
                                 ) : searchResult.registration.is_eligible ? (
                                     <button
                                         type="button"
-                                        onClick={handleConfirm}
+                                        onClick={() => handleConfirm(searchResult.registration.id, searchResult.registration.full_name)}
                                         className="w-full h-12 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm shadow flex items-center justify-center gap-2 transition-all"
                                     >
                                         <CheckCircle2 className="w-5 h-5" />
@@ -343,7 +410,7 @@ export default function CheckinIndex({
                                     </button>
                                 ) : (
                                     <div className="p-3 bg-rose-50 rounded-xl border border-rose-200 text-xs text-rose-800">
-                                        Peserta belum dapat check-in karena status verifikasi administrasi belum disetujui.
+                                        {searchResult.registration.eligibility_message}
                                     </div>
                                 )}
                             </div>

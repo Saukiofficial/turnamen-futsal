@@ -14,7 +14,6 @@ class TeamPlayer extends Model
         'team_id',
         'participant_id',
         'nisn',
-        'jersey_number',
     ];
 
     public function team(): BelongsTo

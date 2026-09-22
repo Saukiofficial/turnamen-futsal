@@ -2,8 +2,8 @@ import React, { useState } from 'react';
 import { Head, Link, router } from '@inertiajs/react';
 import AdminShell from '@/Layouts/AdminShell';
 import PageHeader from '@/Components/Admin/PageHeader';
-import { QRCodeSVG } from 'qrcode.react';
-import { Printer, Search, Shield, Eye } from 'lucide-react';
+import ParticipantCardDesign from '@/Components/ParticipantCardDesign';
+import { Printer, Eye } from 'lucide-react';
 
 interface CardsIndexProps {
     events: { id: number; name: string; code: string }[];
@@ -199,51 +199,9 @@ export default function CardsIndex({
                     </div>
 
                     {previewRegistration ? (
-                        <div className="w-full max-w-sm mx-auto bg-white rounded-2xl border-2 border-slate-300 shadow-md overflow-hidden">
-                            <div className="bg-navy-950 text-white px-4 py-3 flex items-center justify-between border-b border-brand-500">
-                                <div className="flex items-center gap-2">
-                                    <div className="w-7 h-7 rounded-md bg-brand-600 flex items-center justify-center text-white">
-                                        <Shield className="w-4 h-4" />
-                                    </div>
-                                    <span className="text-[11px] font-bold uppercase tracking-wider">KARTU SELEKSI</span>
-                                </div>
-                                <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300">
-                                    RESMI
-                                </span>
-                            </div>
-
-                            <div className="p-4 space-y-3">
-                                <div className="flex items-start gap-3">
-                                    <div className="w-20 h-28 rounded-lg bg-slate-200 border border-slate-300 overflow-hidden shrink-0 shadow-inner flex items-center justify-center">
-                                        {previewRegistration.photo_url ? (
-                                            <img src={previewRegistration.photo_url} alt="" className="w-full h-full object-cover" />
-                                        ) : (
-                                            <span className="text-xs text-slate-400">3×4</span>
-                                        )}
-                                    </div>
-
-                                    <div className="space-y-1 min-w-0 flex-1 text-xs">
-                                        <span className="font-mono font-bold text-brand-600 block text-[11px]">
-                                            {previewRegistration.registration_number}
-                                        </span>
-                                        <h4 className="font-bold text-navy-950 truncate text-sm">
-                                            {previewRegistration.full_name}
-                                        </h4>
-                                        <span className="inline-block px-2 py-0.5 rounded text-[10px] font-bold bg-brand-50 text-brand-700">
-                                            {previewRegistration.primary_position}
-                                        </span>
-                                        <p className="text-[11px] text-slate-500 truncate">{previewRegistration.school_name}</p>
-                                    </div>
-                                </div>
-
-                                <div className="pt-2 border-t border-slate-200 flex items-center justify-between">
-                                    <div className="text-[10px] text-slate-400">
-                                        <span>Pindai saat check-in</span>
-                                    </div>
-                                    <div className="p-1 bg-white rounded border border-slate-200">
-                                        <QRCodeSVG value={previewRegistration.qr_token} size={48} />
-                                    </div>
-                                </div>
+                        <div className="w-full overflow-x-auto pb-2">
+                            <div className="w-max mx-auto shadow-md rounded-[10px]">
+                                <ParticipantCardDesign participant={previewRegistration} />
                             </div>
                         </div>
                     ) : (

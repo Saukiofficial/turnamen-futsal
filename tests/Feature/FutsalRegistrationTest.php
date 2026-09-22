@@ -6,7 +6,9 @@ use App\Models\Event;
 use App\Models\Participant;
 use App\Models\Registration;
 use App\Models\Team;
+use App\Models\TeamPlayer;
 use App\Models\User;
+use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\Storage;
@@ -14,6 +16,8 @@ use Tests\TestCase;
 
 class FutsalRegistrationTest extends TestCase
 {
+    use DatabaseTransactions;
+
     protected function setUp(): void
     {
         parent::setUp();
@@ -171,53 +175,109 @@ class FutsalRegistrationTest extends TestCase
 
     public function test_checkin_lookup_and_confirm_via_qr_token(): void
     {
-        $officer = User::where('role', 'checkin_officer')->first() ?? User::first();
-        $reg = Registration::where('verification_status', 'lolos_administrasi')->first();
-        if (! $reg) {
-            $participant = Participant::create([
-                'full_name' => 'Checkin Candidate',
-                'nik_encrypted' => Crypt::encryptString('3201444455556666'),
-                'nik_hash' => hash('sha256', '3201444455556666'),
-                'birth_place' => 'Jakarta',
-                'birth_date' => '2008-01-01',
-            ]);
-            $event = Event::first();
-            $reg = Registration::create([
-                'event_id' => $event->id,
-                'participant_id' => $participant->id,
-                'registration_number' => Registration::generateRegistrationNumber($event->id),
-                'access_code_hash' => bcrypt('CODE1234'),
-                'access_code_plain' => 'CODE1234',
-                'qr_token' => Registration::generateQrToken(),
-                'primary_position' => 'Flank',
-                'verification_status' => 'lolos_administrasi',
-                'submitted_at' => now(),
-            ]);
-        }
-        $this->assertNotNull($reg);
-
-        // Lookup
-        $resLookup = $this->actingAs($officer)->post('/admin/checkin/lookup', [
-            'keyword' => $reg->qr_token,
-            'event_id' => $reg->event_id,
+        $officer = User::where('role', 'checkin_officer')->firstOrFail();
+        $event = Event::firstOrFail();
+        $participant = Participant::create([
+            'full_name' => 'Checkin Candidate',
+            'nisn' => '0091445566',
+            'nik_encrypted' => Crypt::encryptString('3201444455556666'),
+            'nik_hash' => hash('sha256', '3201444455556666'),
+            'birth_place' => 'Jakarta',
+            'birth_date' => '2008-01-01',
+            'school_name' => 'SMAN Checkin',
         ]);
-        $resLookup->assertJson([
+        $registration = Registration::create([
+            'event_id' => $event->id,
+            'participant_id' => $participant->id,
+            'registration_number' => Registration::generateRegistrationNumber($event->id),
+            'access_code_hash' => bcrypt('CODE1234'),
+            'access_code_plain' => 'CODE1234',
+            'qr_token' => Registration::generateQrToken(),
+            'primary_position' => 'Flank',
+            'verification_status' => 'lolos_administrasi',
+            'submitted_at' => now(),
+        ]);
+        $team = Team::create([
+            'event_id' => $event->id,
+            'team_name' => 'Tim Checkin Resmi',
+            'school_name' => 'SMAN Checkin',
+            'head_coach' => 'Coach Checkin',
+            'manager_name' => 'Manager Checkin',
+            'manager_phone' => '081234567890',
+            'registration_number' => Team::generateRegistrationNumber($event->id),
+            'access_code_plain' => 'TEAMCODE',
+            'access_code_hash' => bcrypt('TEAMCODE'),
+            'qr_token' => Team::generateQrToken(),
+            'verification_status' => 'lolos_administrasi',
+            'submitted_at' => now(),
+        ]);
+        TeamPlayer::create([
+            'team_id' => $team->id,
+            'participant_id' => $participant->id,
+            'nisn' => $participant->nisn,
+        ]);
+
+        $lookupResponse = $this->actingAs($officer)->post('/admin/checkin/lookup', [
+            'keyword' => $registration->qr_token,
+            'event_id' => $event->id,
+        ]);
+        $lookupResponse->assertJson([
             'found' => true,
             'registration' => [
-                'registration_number' => $reg->registration_number,
+                'registration_number' => $registration->registration_number,
+                'is_eligible' => true,
+                'team_name' => 'Tim Checkin Resmi',
             ],
         ]);
 
-        // Confirm
-        $resConfirm = $this->actingAs($officer)->post('/admin/checkin/confirm', [
-            'registration_id' => $reg->id,
+        $confirmResponse = $this->actingAs($officer)->post('/admin/checkin/confirm', [
+            'registration_id' => $registration->id,
             'status' => 'hadir',
         ]);
-        $resConfirm->assertRedirect();
+        $confirmResponse->assertRedirect()->assertSessionHas('success');
 
         $this->assertDatabaseHas('attendances', [
-            'registration_id' => $reg->id,
+            'registration_id' => $registration->id,
             'status' => 'hadir',
+        ]);
+    }
+
+    public function test_checkin_rejects_approved_player_outside_official_team_roster(): void
+    {
+        $officer = User::where('role', 'checkin_officer')->firstOrFail();
+        $event = Event::firstOrFail();
+        $participant = Participant::create([
+            'full_name' => 'Pemain Luar',
+            'nisn' => '0091778899',
+            'nik_encrypted' => Crypt::encryptString('3201777788889999'),
+            'nik_hash' => hash('sha256', '3201777788889999'),
+            'birth_place' => 'Bandung',
+            'birth_date' => '2008-02-01',
+            'school_name' => 'Sekolah Luar',
+        ]);
+        $registration = Registration::create([
+            'event_id' => $event->id,
+            'participant_id' => $participant->id,
+            'registration_number' => Registration::generateRegistrationNumber($event->id),
+            'access_code_hash' => bcrypt('OUTSIDER'),
+            'access_code_plain' => 'OUTSIDER',
+            'qr_token' => Registration::generateQrToken(),
+            'primary_position' => 'Pivot',
+            'verification_status' => 'lolos_administrasi',
+            'submitted_at' => now(),
+        ]);
+
+        $response = $this->actingAs($officer)->post('/admin/checkin/confirm', [
+            'registration_id' => $registration->id,
+            'status' => 'hadir',
+        ]);
+
+        $response->assertRedirect()->assertSessionHas(
+            'error',
+            'Check-in ditolak. Pemain tidak tercatat dalam roster tim resmi yang telah disetujui.',
+        );
+        $this->assertDatabaseMissing('attendances', [
+            'registration_id' => $registration->id,
         ]);
     }
 
@@ -290,6 +350,35 @@ class FutsalRegistrationTest extends TestCase
         $this->assertNotNull($team->logo_path);
     }
 
+    public function test_team_registration_rejects_player_outside_event_roster(): void
+    {
+        Storage::fake('public');
+        $event = Event::firstOrFail();
+        $document = UploadedFile::fake()->create('surat-rekomendasi.pdf', 500, 'application/pdf');
+        Participant::where('nisn', '0099999999')->delete();
+
+        $response = $this->post('/daftar-tim', [
+            'event_id' => $event->id,
+            'team_name' => 'Tim Dengan Pemain Luar',
+            'school_name' => 'SMAN Anti Curang',
+            'head_coach' => 'Coach Aman',
+            'manager_name' => 'Manager Aman',
+            'manager_phone' => '081299998888',
+            'document' => $document,
+            'players' => [
+                ['nisn' => '0099999999'],
+            ],
+            'agreement' => '1',
+        ]);
+
+        $response->assertInvalid([
+            'players' => 'Pemain dengan NISN 0099999999 tidak terdaftar pada event turnamen ini.',
+        ]);
+        $this->assertDatabaseMissing('teams', [
+            'team_name' => 'Tim Dengan Pemain Luar',
+        ]);
+    }
+
     public function test_public_can_view_live_tournament_matches_bracket(): void
     {
         $response = $this->get('/hasil-pertandingan');
@@ -354,6 +443,7 @@ class FutsalRegistrationTest extends TestCase
     {
         Storage::fake('public');
         $event = Event::first();
+        Team::where('team_name', 'SMAN 3 Malang Futsal')->delete();
 
         // Prepare 5 participants
         $playersPayload = [];
@@ -386,7 +476,6 @@ class FutsalRegistrationTest extends TestCase
 
             $playersPayload[] = [
                 'nisn' => $nisn,
-                'jersey_number' => (string) ($i * 2),
             ];
         }
 

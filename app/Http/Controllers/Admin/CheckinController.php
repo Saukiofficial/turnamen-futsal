@@ -9,6 +9,7 @@ use App\Models\Event;
 use App\Models\Registration;
 use App\Models\SelectionSession;
 use App\Models\Team;
+use App\Models\TeamPlayer;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -26,16 +27,31 @@ class CheckinController extends Controller
 
         $sessions = SelectionSession::where('event_id', $selectedEventId)->get();
 
-        $totalEligible = Registration::where('event_id', $selectedEventId)
+        $officialRegistrationsQuery = Registration::where('event_id', $selectedEventId)
             ->where('verification_status', 'lolos_administrasi')
-            ->count();
+            ->whereHas('participant.teamPlayers.team', function ($query) use ($selectedEventId) {
+                $query->where('event_id', $selectedEventId)
+                    ->where('verification_status', 'lolos_administrasi');
+            });
 
-        $attendancesQuery = Attendance::whereHas('registration', fn ($q) => $q->where('event_id', $selectedEventId));
+        $totalEligible = (clone $officialRegistrationsQuery)->count();
+
+        $attendancesQuery = Attendance::whereHas('registration', function ($query) use ($selectedEventId) {
+            $query->where('event_id', $selectedEventId)
+                ->whereHas('participant.teamPlayers.team', function ($teamQuery) use ($selectedEventId) {
+                    $teamQuery->where('event_id', $selectedEventId)
+                        ->where('verification_status', 'lolos_administrasi');
+                });
+        });
         $totalPresent = (clone $attendancesQuery)->where('status', 'hadir')->count();
         $totalLate = (clone $attendancesQuery)->where('status', 'terlambat')->count();
 
         $recentCheckins = Attendance::with(['registration.participant', 'session', 'checkedInBy'])
             ->whereHas('registration', fn ($q) => $q->where('event_id', $selectedEventId))
+            ->whereHas('registration.participant.teamPlayers.team', function ($query) use ($selectedEventId) {
+                $query->where('event_id', $selectedEventId)
+                    ->where('verification_status', 'lolos_administrasi');
+            })
             ->latest('checked_in_at')
             ->take(10)
             ->get()
@@ -88,7 +104,7 @@ class CheckinController extends Controller
             ->first();
 
         if (! $registration) {
-            $team = Team::with(['players.participant.registrations', 'event'])
+            $team = Team::with(['players.participant.registrations.attendance', 'event'])
                 ->where('event_id', $eventId)
                 ->where(function ($q) use ($keyword) {
                     $q->where('qr_token', $keyword)
@@ -112,13 +128,27 @@ class CheckinController extends Controller
                         'is_eligible' => $team->verification_status === 'lolos_administrasi',
                         'logo_url' => $team->logo_path ? Storage::url($team->logo_path) : null,
                         'submitted_at' => $team->submitted_at?->translatedFormat('d M Y, H:i') ?? '-',
-                        'players' => $team->players->map(fn ($p) => [
-                            'id' => $p->id,
-                            'jersey_number' => $p->jersey_number,
-                            'nisn' => $p->nisn,
-                            'full_name' => $p->participant?->full_name ?? 'Pemain',
-                            'position' => $p->participant?->registrations?->first()?->primary_position ?? 'Pemain',
-                        ]),
+                        'players' => $team->players->map(function ($player) use ($team) {
+                            $participant = $player->participant;
+                            $registration = $participant?->registrations->firstWhere('event_id', $team->event_id);
+
+                            return [
+                                'id' => $player->id,
+                                'registration_id' => $registration?->id,
+                                'nisn' => $player->nisn,
+                                'full_name' => $participant?->full_name ?? 'Pemain',
+                                'school_name' => $participant?->school_name ?? '-',
+                                'birth_date' => $participant?->birth_date?->translatedFormat('d M Y') ?? '-',
+                                'position' => $registration?->primary_position ?? 'Pemain',
+                                'photo_url' => $registration?->photo_path ? Storage::url($registration->photo_path) : null,
+                                'is_eligible' => $team->verification_status === 'lolos_administrasi'
+                                    && $registration?->verification_status === 'lolos_administrasi',
+                                'attendance' => $registration?->attendance ? [
+                                    'status' => $registration->attendance->status,
+                                    'checked_in_at' => $registration->attendance->checked_in_at->translatedFormat('d M Y, H:i:s'),
+                                ] : null,
+                            ];
+                        })->values(),
                     ],
                 ]);
             }
@@ -130,6 +160,12 @@ class CheckinController extends Controller
         }
 
         $alreadyCheckedIn = $registration->attendance !== null;
+        $teamPlayer = TeamPlayer::with('team')
+            ->where('participant_id', $registration->participant_id)
+            ->whereHas('team', fn ($query) => $query->where('event_id', $registration->event_id))
+            ->first();
+        $isOfficialRosterPlayer = $teamPlayer?->team?->verification_status === 'lolos_administrasi';
+        $isEligible = $registration->verification_status === 'lolos_administrasi' && $isOfficialRosterPlayer;
 
         return response()->json([
             'found' => true,
@@ -146,7 +182,13 @@ class CheckinController extends Controller
                 'school_name' => $registration->participant->school_name ?? 'Peserta Umum',
                 'primary_position' => $registration->primary_position,
                 'verification_status' => $registration->verification_status,
-                'is_eligible' => $registration->verification_status === 'lolos_administrasi',
+                'is_eligible' => $isEligible,
+                'eligibility_message' => $isEligible
+                    ? 'Pemain tercatat dalam roster tim resmi.'
+                    : 'Pemain tidak tercatat dalam roster tim yang telah disetujui untuk event ini.',
+                'team_name' => $teamPlayer?->team?->team_name,
+                'nisn' => $registration->participant->nisn,
+                'birth_date' => $registration->participant->birth_date?->translatedFormat('d M Y') ?? '-',
                 'photo_url' => $registration->photo_path ? Storage::url($registration->photo_path) : null,
             ],
         ]);
@@ -170,6 +212,28 @@ class CheckinController extends Controller
             return back()->with('error', 'Peserta belum Lolos Administrasi sehingga belum dapat check-in.');
         }
 
+        $officialTeamPlayer = TeamPlayer::with('team')
+            ->where('participant_id', $registration->participant_id)
+            ->whereHas('team', function ($query) use ($registration) {
+                $query->where('event_id', $registration->event_id)
+                    ->where('verification_status', 'lolos_administrasi');
+            })
+            ->first();
+
+        if (! $officialTeamPlayer) {
+            return back()->with('error', 'Check-in ditolak. Pemain tidak tercatat dalam roster tim resmi yang telah disetujui.');
+        }
+
+        if (! empty($validated['session_id'])) {
+            $sessionBelongsToEvent = SelectionSession::whereKey($validated['session_id'])
+                ->where('event_id', $registration->event_id)
+                ->exists();
+
+            if (! $sessionBelongsToEvent) {
+                return back()->with('error', 'Sesi check-in tidak sesuai dengan event tim pemain.');
+            }
+        }
+
         // Prevent duplicate check-in
         $existing = Attendance::where('registration_id', $registration->id)->first();
         if ($existing) {
@@ -187,9 +251,12 @@ class CheckinController extends Controller
 
         AuditLog::log('participant_checked_in', $attendance, null, [
             'registration_number' => $registration->registration_number,
+            'team_id' => $officialTeamPlayer->team_id,
+            'team_name' => $officialTeamPlayer->team->team_name,
+            'nisn' => $officialTeamPlayer->nisn,
             'status' => $validated['status'],
         ]);
 
-        return back()->with('success', "Check-in {$registration->participant->full_name} ({$registration->registration_number}) berhasil dicatat.");
+        return back()->with('success', "Identitas {$registration->participant->full_name} cocok dengan roster {$officialTeamPlayer->team->team_name}. Check-in berhasil dicatat.");
     }
 }

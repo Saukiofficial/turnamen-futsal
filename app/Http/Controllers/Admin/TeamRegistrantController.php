@@ -83,7 +83,6 @@ class TeamRegistrantController extends Controller
             return [
                 'id' => $tp->id,
                 'nisn' => $tp->nisn,
-                'jersey_number' => $tp->jersey_number,
                 'name' => $p?->full_name ?? 'Peserta Tidak Ditemukan',
                 'school' => $p?->school_name ?? '-',
                 'position' => $reg?->primary_position ?? 'Pemain',

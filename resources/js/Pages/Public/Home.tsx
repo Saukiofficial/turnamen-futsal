@@ -113,14 +113,14 @@ export default function Home({ event, stats, announcements }: HomeProps) {
                     </picture>
                     {/* Smooth soft white fade on the left so typography is 100% legible */}
                     <div className="absolute inset-0 bg-gradient-to-r from-page via-page/95 sm:via-page/85 via-45% to-transparent hidden sm:block" />
-                    <div className="absolute inset-0 bg-page/92 sm:hidden" />
+                    <div className="absolute inset-0 bg-gradient-to-b from-white/95 via-white/90 to-white/80 sm:hidden" />
                 </div>
 
                 <div className="max-w-[1240px] mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
                     <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-12 items-center">
                         
                         {/* Kolom Kiri: Copywriting & CTA (7 Cols) */}
-                        <div className="lg:col-span-7 space-y-6">
+                        <div className="lg:col-span-7 space-y-5 sm:space-y-6">
                             
                             {/* Eyebrow & Status Baris Bersama */}
                             <div className="flex flex-wrap items-center gap-3">
@@ -147,7 +147,7 @@ export default function Home({ event, stats, announcements }: HomeProps) {
                             </div>
 
                             {/* Heading Utama (54-60px desktop) */}
-                            <h1 className="text-4xl sm:text-5xl lg:text-[56px] font-black tracking-tight text-slate-900 leading-[1.08]">
+                            <h1 className="text-[34px] sm:text-5xl lg:text-[56px] font-black tracking-tight text-slate-900 leading-[1.08]">
                                 {event ? event.name : 'SAF League — Turnamen Futsal 2026'}
                             </h1>
 
@@ -169,27 +169,29 @@ export default function Home({ event, stats, announcements }: HomeProps) {
                             </div>
 
                             {/* Tombol CTA Dual: Tahap 1 Individu & Tahap 2 Tim */}
-                            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 pt-2">
+                            <div className="grid grid-cols-2 sm:flex sm:flex-row items-stretch sm:items-center gap-3 pt-2">
                                 <Link
                                     href={route('registration.create')}
-                                    className="h-12 px-5 rounded-xl bg-brand-600 hover:bg-brand-700 text-white font-bold text-sm transition-colors flex items-center justify-center gap-2 shadow-sm"
+                                    className="h-12 px-3 sm:px-5 rounded-xl bg-brand-600 hover:bg-brand-700 text-white font-bold text-sm transition-colors flex items-center justify-center gap-2 shadow-sm"
                                 >
                                     <UserPlus className="w-4 h-4" />
-                                    <span>Tahap 1: Daftar Pemain</span>
+                                    <span className="sm:hidden">Daftar Pemain</span>
+                                    <span className="hidden sm:inline">Tahap 1: Daftar Pemain</span>
                                 </Link>
 
                                 <Link
                                     href={route('team.create')}
-                                    className="h-12 px-6 rounded-xl bg-amber-500 hover:bg-amber-400 text-navy-950 font-bold text-sm transition-colors flex items-center justify-center gap-2 shadow-sm"
+                                    className="h-12 px-3 sm:px-6 rounded-xl bg-amber-500 hover:bg-amber-400 text-navy-950 font-bold text-sm transition-colors flex items-center justify-center gap-2 shadow-sm"
                                 >
                                     <Users className="w-4 h-4" />
-                                    <span>Tahap 2: Daftar Tim</span>
-                                    <ArrowRight className="w-4 h-4" />
+                                    <span className="sm:hidden">Daftar Tim</span>
+                                    <span className="hidden sm:inline">Tahap 2: Daftar Tim</span>
+                                    <ArrowRight className="w-4 h-4 hidden sm:block" />
                                 </Link>
 
                                 <Link
                                     href={route('matches.index')}
-                                    className="h-12 px-4 rounded-xl bg-white hover:bg-slate-50 border border-slate-300 text-slate-800 font-bold text-sm transition-colors flex items-center justify-center gap-2 shadow-2xs"
+                                    className="col-span-2 h-12 px-4 rounded-xl bg-white hover:bg-slate-50 border border-slate-300 text-slate-800 font-bold text-sm transition-colors flex items-center justify-center gap-2 shadow-2xs sm:col-span-1"
                                 >
                                     <Trophy className="w-4 h-4 text-amber-500" />
                                     <span>Bagan Laga</span>

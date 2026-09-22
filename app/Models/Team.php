@@ -93,7 +93,7 @@ class Team extends Model
     public function participants(): BelongsToMany
     {
         return $this->belongsToMany(Participant::class, 'team_players')
-            ->withPivot('nisn', 'jersey_number')
+            ->withPivot('nisn')
             ->withTimestamps();
     }
 

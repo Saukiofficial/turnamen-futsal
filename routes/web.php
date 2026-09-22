@@ -89,7 +89,7 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
     Route::get('/cards', [ParticipantCardController::class, 'index'])->name('cards.index');
     Route::post('/cards/bulk-print', [ParticipantCardController::class, 'bulkPrint'])->name('cards.bulk-print');
 
-    // 6. Check-in Seleksi
+    // 6. Check-in Turnamen
     Route::get('/checkin', [CheckinController::class, 'index'])->name('checkin.index');
     Route::post('/checkin/lookup', [CheckinController::class, 'lookup'])->name('checkin.lookup');
     Route::post('/checkin/confirm', [CheckinController::class, 'confirm'])->name('checkin.confirm');

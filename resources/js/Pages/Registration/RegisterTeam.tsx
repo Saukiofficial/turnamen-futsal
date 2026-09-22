@@ -22,7 +22,6 @@ import {
     Plus,
     Trash2,
     Loader2,
-    Shirt,
     UserCheck,
     UserX,
     ExternalLink,
@@ -42,7 +41,6 @@ interface RegisterTeamProps {
 
 interface SquadPlayer {
     nisn: string;
-    jersey_number: string;
     status: 'idle' | 'checking' | 'valid' | 'not_found' | 'already_in_team' | 'error';
     message?: string;
     playerData?: {
@@ -62,11 +60,11 @@ export default function RegisterTeam({ event }: RegisterTeamProps) {
 
     // Initial 5 squad player slots (minimum for a futsal team)
     const [players, setPlayers] = useState<SquadPlayer[]>([
-        { nisn: '', jersey_number: '', status: 'idle' },
-        { nisn: '', jersey_number: '', status: 'idle' },
-        { nisn: '', jersey_number: '', status: 'idle' },
-        { nisn: '', jersey_number: '', status: 'idle' },
-        { nisn: '', jersey_number: '', status: 'idle' },
+        { nisn: '', status: 'idle' },
+        { nisn: '', status: 'idle' },
+        { nisn: '', status: 'idle' },
+        { nisn: '', status: 'idle' },
+        { nisn: '', status: 'idle' },
     ]);
 
     const { data, setData, post, processing, errors } = useForm({
@@ -78,7 +76,7 @@ export default function RegisterTeam({ event }: RegisterTeamProps) {
         manager_phone: '',
         logo: null as File | null,
         document: null as File | null,
-        players: [] as Array<{ nisn: string; jersey_number: string }>,
+        players: [] as Array<{ nisn: string }>,
         agreement: false,
     });
 
@@ -88,7 +86,6 @@ export default function RegisterTeam({ event }: RegisterTeamProps) {
             .filter(p => p.nisn.trim().length === 10)
             .map(p => ({
                 nisn: p.nisn.trim(),
-                jersey_number: p.jersey_number.trim(),
             }));
         setData('players', payloadPlayers);
     }, [players]);
@@ -229,21 +226,12 @@ export default function RegisterTeam({ event }: RegisterTeamProps) {
         }
     };
 
-    const handlePlayerJerseyChange = (index: number, value: string) => {
-        const clean = value.replace(/\D/g, '').slice(0, 3);
-        setPlayers(prev => {
-            const next = [...prev];
-            next[index] = { ...next[index], jersey_number: clean };
-            return next;
-        });
-    };
-
     const addPlayerRow = () => {
         if (players.length >= 14) {
-            alert('Maksimal skuad adalah 14 pemain.');
+            alert('Maksimal 14 pemain dalam satu tim.');
             return;
         }
-        setPlayers(prev => [...prev, { nisn: '', jersey_number: '', status: 'idle' }]);
+        setPlayers(prev => [...prev, { nisn: '', status: 'idle' }]);
     };
 
     const removePlayerRow = (index: number) => {
@@ -268,7 +256,7 @@ export default function RegisterTeam({ event }: RegisterTeamProps) {
         // Validation for linked 2-stage tournament:
         // Must have at least 5 verified players
         if (verifiedCount < 5) {
-            setSquadError(`Tim futsal wajib memiliki minimal 5 pemain yang telah terdaftar & terverifikasi di Tahap 1 (Pendaftaran Individu). Saat ini baru ${verifiedCount} pemain yang valid.`);
+            setSquadError(`Tim futsal wajib memiliki minimal 5 pemain yang telah terdaftar dan terverifikasi melalui NISN. Saat ini baru ${verifiedCount} pemain yang valid.`);
             const el = document.getElementById('squad-section');
             if (el) el.scrollIntoView({ behavior: 'smooth' });
             return;
@@ -537,7 +525,7 @@ export default function RegisterTeam({ event }: RegisterTeamProps) {
                                         </p>
                                         <ul className="text-xs text-slate-600 space-y-1 list-disc list-inside">
                                             <li>Surat Rekomendasi / Keterangan resmi dari Kepala Sekolah.</li>
-                                            <li>Daftar Nama & Nomor NISN pemain/skuad tim.</li>
+                                            <li>Daftar nama dan NISN pemain tim.</li>
                                         </ul>
                                     </div>
 
@@ -568,17 +556,17 @@ export default function RegisterTeam({ event }: RegisterTeamProps) {
                             </div>
                         </div>
 
-                        {/* Section 4: Skuad & Roster Pemain Tim */}
+                        {/* Section 4: Player NISN Verification */}
                         <div id="squad-section" className="space-y-6 pt-4 border-t border-slate-200">
                             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-200 pb-3">
                                 <div className="flex items-center gap-2">
-                                    <Shirt className="w-5 h-5 text-amber-500" />
+                                    <Users className="w-5 h-5 text-amber-500" />
                                     <div>
                                         <h3 className="text-base font-bold text-navy-950 uppercase tracking-wide">
-                                            4. Skuad & Roster Pemain Tim
+                                            4. Verifikasi NISN Pemain
                                         </h3>
                                         <p className="text-xs text-slate-500">
-                                            Pemain wajib telah mendaftar di <strong>Tahap 1 (Formulir Individu)</strong> menggunakan NISN.
+                                            Salin NISN pemain dari surat rekomendasi untuk memastikan setiap pemain terdaftar resmi.
                                         </p>
                                     </div>
                                 </div>
@@ -599,10 +587,10 @@ export default function RegisterTeam({ event }: RegisterTeamProps) {
                                 <Info className="w-5 h-5 text-blue-600 shrink-0 mt-0.5" />
                                 <div className="space-y-1">
                                     <p className="font-semibold text-blue-950">
-                                        Mekanisme Turnamen 2-Tahap Terhubung (NISN Validation):
+                                        Verifikasi Pemain dari Surat Rekomendasi
                                     </p>
                                     <p className="text-blue-800">
-                                        Setiap atlet futsal dari perwakilan sekolah Anda harus menyelesaikan <strong>Pendaftaran Individu</strong> terlebih dahulu. Masukkan 10 digit NISN atlet di bawah untuk memasukkan mereka ke skuad resmi tim. Sistem akan mencocokkan data secara realtime.
+                                        Masukkan 10 digit NISN setiap pemain yang tercantum pada surat rekomendasi. Sistem akan mencocokkannya dengan data pendaftaran individu secara otomatis.
                                     </p>
                                     <div className="pt-1">
                                         <a 
@@ -623,7 +611,7 @@ export default function RegisterTeam({ event }: RegisterTeamProps) {
                                 <div className="p-4 rounded-xl bg-rose-50 border border-rose-300 flex items-start gap-3 text-xs text-rose-800">
                                     <AlertCircle className="w-5 h-5 text-rose-600 shrink-0 mt-0.5" />
                                     <div>
-                                        <p className="font-bold text-rose-900">Perhatian Pendaftaran Skuad:</p>
+                                        <p className="font-bold text-rose-900">Perhatian Data Pemain:</p>
                                         <p>{squadError}</p>
                                     </div>
                                 </div>
@@ -693,9 +681,9 @@ export default function RegisterTeam({ event }: RegisterTeamProps) {
                                             </div>
                                         </div>
 
-                                        <div className="grid grid-cols-1 sm:grid-cols-12 gap-3 items-start">
+                                        <div>
                                             {/* NISN Input */}
-                                            <div className="sm:col-span-8">
+                                            <div>
                                                 <label className="block text-[11px] font-semibold text-slate-700 uppercase tracking-wider mb-1">
                                                     NISN Pemain (10 Digit) <span className="text-rose-500">*</span>
                                                 </label>
@@ -721,24 +709,6 @@ export default function RegisterTeam({ event }: RegisterTeamProps) {
                                                 </div>
                                             </div>
 
-                                            {/* Jersey Number */}
-                                            <div className="sm:col-span-4">
-                                                <label className="block text-[11px] font-semibold text-slate-700 uppercase tracking-wider mb-1">
-                                                    No. Punggung <span className="text-slate-400 font-normal">(1 - 99)</span>
-                                                </label>
-                                                <div className="relative">
-                                                    <Shirt className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-3 pointer-events-none" />
-                                                    <input
-                                                        type="text"
-                                                        inputMode="numeric"
-                                                        maxLength={3}
-                                                        value={player.jersey_number}
-                                                        onChange={(e) => handlePlayerJerseyChange(index, e.target.value)}
-                                                        placeholder="e.g. 10"
-                                                        className="w-full pl-8 pr-3 py-2 rounded-lg border border-slate-300 text-sm font-mono text-slate-800 focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500"
-                                                    />
-                                                </div>
-                                            </div>
                                         </div>
 
                                         {/* Status Feedback / Verified Player Preview */}
@@ -763,11 +733,6 @@ export default function RegisterTeam({ event }: RegisterTeamProps) {
                                                         <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-100 text-amber-900 border border-amber-200 shrink-0">
                                                             {player.playerData.position}
                                                         </span>
-                                                        {player.jersey_number && (
-                                                            <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-slate-800 text-white shrink-0">
-                                                                #{player.jersey_number}
-                                                            </span>
-                                                        )}
                                                     </div>
                                                     <p className="text-[11px] text-slate-500 truncate mt-0.5">
                                                         NISN: <span className="font-mono text-slate-700 font-semibold">{player.playerData.nisn}</span> • {player.playerData.school}
@@ -782,7 +747,7 @@ export default function RegisterTeam({ event }: RegisterTeamProps) {
                                                 <div className="space-y-0.5">
                                                     <p className="font-semibold">{player.message}</p>
                                                     <p className="text-[11px] text-rose-700">
-                                                        Pemain harus mendaftar individu terlebih dahulu sebelum bisa dimasukkan ke dalam skuad tim.
+                                                        Pemain harus mendaftar individu terlebih dahulu sebelum dapat dicantumkan sebagai pemain tim.
                                                     </p>
                                                 </div>
                                             </div>
@@ -814,7 +779,7 @@ export default function RegisterTeam({ event }: RegisterTeamProps) {
                                     className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 text-slate-800 text-xs font-bold transition-all shadow-xs disabled:opacity-50"
                                 >
                                     <Plus className="w-4 h-4 text-brand-600" />
-                                    <span>Tambah Pemain Skuad ({players.length}/14)</span>
+                                    <span>Tambah NISN Pemain ({players.length}/14)</span>
                                 </button>
                                 <span className="text-xs text-slate-500">
                                     Minimal 5 pemain terverifikasi (Starting Five), maksimal 14 pemain.

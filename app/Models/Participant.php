@@ -34,6 +34,11 @@ class Participant extends Model
         return $this->hasMany(Registration::class);
     }
 
+    public function teamPlayers(): HasMany
+    {
+        return $this->hasMany(TeamPlayer::class);
+    }
+
     public function setNik(string $nik): void
     {
         $cleanNik = preg_replace('/\D/', '', $nik);

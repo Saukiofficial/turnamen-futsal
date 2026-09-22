@@ -21,7 +21,6 @@ import {
 interface TeamPlayer {
     id: number;
     nisn: string;
-    jersey_number: string | null;
     name: string;
     school: string;
     position: string;
@@ -304,7 +303,6 @@ export default function AdminTeamsShow({ team }: TeamShowProps) {
                                 <thead>
                                     <tr className="border-b border-slate-200 text-slate-400 uppercase font-semibold text-[10px]">
                                         <th className="py-2.5 px-3">No</th>
-                                        <th className="py-2.5 px-3">No. Jersey</th>
                                         <th className="py-2.5 px-3">Nama Atlet</th>
                                         <th className="py-2.5 px-3">NISN</th>
                                         <th className="py-2.5 px-3">Asal Sekolah</th>
@@ -317,15 +315,6 @@ export default function AdminTeamsShow({ team }: TeamShowProps) {
                                         <tr key={player.id || idx} className="hover:bg-slate-50/60 transition-colors">
                                             <td className="py-3 px-3 font-semibold text-slate-500">
                                                 #{idx + 1}
-                                            </td>
-                                            <td className="py-3 px-3">
-                                                {player.jersey_number ? (
-                                                    <span className="inline-flex items-center justify-center w-7 h-7 rounded-md bg-navy-950 text-white font-mono font-bold text-xs">
-                                                        {player.jersey_number}
-                                                    </span>
-                                                ) : (
-                                                    <span className="text-slate-400 font-mono">-</span>
-                                                )}
                                             </td>
                                             <td className="py-3 px-3">
                                                 <div className="flex items-center gap-2.5">
