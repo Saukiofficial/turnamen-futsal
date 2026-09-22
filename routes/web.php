@@ -78,6 +78,7 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
     // 3. Data Pendaftar
     Route::get('/registrants', [RegistrantController::class, 'index'])->name('registrants.index');
     Route::get('/registrants/{id}', [RegistrantController::class, 'show'])->name('registrants.show');
+    Route::delete('/registrants/{registration}', [RegistrantController::class, 'destroy'])->name('registrants.destroy');
     Route::post('/registrants/{id}/status', [RegistrantController::class, 'updateStatus'])->name('registrants.update-status');
     Route::get('/registrants-export/csv', [RegistrantController::class, 'export'])->name('registrants.export');
 

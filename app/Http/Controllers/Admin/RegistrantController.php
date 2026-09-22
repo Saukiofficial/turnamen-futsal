@@ -191,6 +191,26 @@ class RegistrantController extends Controller
         return back()->with('success', 'Status pendaftaran berhasil diperbarui.');
     }
 
+    public function destroy(Request $request, Registration $registration): RedirectResponse
+    {
+        abort_unless($request->user()?->isAdmin(), 403);
+
+        $photoPath = $registration->photo_path;
+
+        AuditLog::log('participant_registration_deleted', $registration, [
+            'registration_number' => $registration->registration_number,
+            'participant_id' => $registration->participant_id,
+        ]);
+
+        $registration->delete();
+
+        if ($photoPath) {
+            Storage::disk('public')->delete($photoPath);
+        }
+
+        return back()->with('success', 'Pendaftaran individu berhasil dihapus.');
+    }
+
     public function export(Request $request): StreamedResponse
     {
         $eventId = $request->query('event_id');

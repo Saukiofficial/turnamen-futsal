@@ -68,6 +68,74 @@ class FutsalRegistrationTest extends TestCase
         $response->assertStatus(200);
     }
 
+    public function test_registration_admin_can_delete_an_individual_registration(): void
+    {
+        Storage::fake('public');
+        Storage::disk('public')->put('photos/delete-me.jpg', 'photo');
+        $admin = User::where('role', 'super_admin')->firstOrFail();
+        $participant = Participant::create([
+            'full_name' => 'Delete Candidate',
+            'nisn' => '0099887766',
+            'nik_encrypted' => Crypt::encryptString('3201998877665544'),
+            'nik_hash' => hash('sha256', '3201998877665544'),
+            'birth_place' => 'Bandung',
+            'birth_date' => '2008-01-01',
+        ]);
+        $registration = Registration::create([
+            'event_id' => Event::firstOrFail()->id,
+            'participant_id' => $participant->id,
+            'registration_number' => Registration::generateRegistrationNumber(Event::firstOrFail()->id),
+            'access_code_hash' => bcrypt('DELETE01'),
+            'access_code_plain' => 'DELETE01',
+            'qr_token' => Registration::generateQrToken(),
+            'primary_position' => 'Anchor',
+            'photo_path' => 'photos/delete-me.jpg',
+            'verification_status' => 'menunggu_verifikasi',
+            'submitted_at' => now(),
+        ]);
+
+        $response = $this->actingAs($admin)->delete(route('admin.registrants.destroy', $registration));
+
+        $response->assertRedirect()->assertSessionHas('success');
+        $this->assertModelMissing($registration);
+        $this->assertModelExists($participant);
+        Storage::disk('public')->assertMissing('photos/delete-me.jpg');
+        $this->assertDatabaseHas('audit_logs', [
+            'action' => 'participant_registration_deleted',
+            'auditable_id' => $registration->id,
+        ]);
+    }
+
+    public function test_non_registration_admin_cannot_delete_an_individual_registration(): void
+    {
+        $officer = User::where('role', 'checkin_officer')->firstOrFail();
+        $participant = Participant::create([
+            'full_name' => 'Protected Candidate',
+            'nisn' => '0011223344',
+            'nik_encrypted' => Crypt::encryptString('3201112233445566'),
+            'nik_hash' => hash('sha256', '3201112233445566'),
+            'birth_place' => 'Jakarta',
+            'birth_date' => '2008-02-02',
+        ]);
+        $event = Event::firstOrFail();
+        $registration = Registration::create([
+            'event_id' => $event->id,
+            'participant_id' => $participant->id,
+            'registration_number' => Registration::generateRegistrationNumber($event->id),
+            'access_code_hash' => bcrypt('PROTECT1'),
+            'access_code_plain' => 'PROTECT1',
+            'qr_token' => Registration::generateQrToken(),
+            'primary_position' => 'Flank',
+            'verification_status' => 'menunggu_verifikasi',
+            'submitted_at' => now(),
+        ]);
+
+        $response = $this->actingAs($officer)->delete(route('admin.registrants.destroy', $registration));
+
+        $response->assertForbidden();
+        $this->assertModelExists($registration);
+    }
+
     public function test_candidate_can_submit_registration(): void
     {
         Storage::fake('public');

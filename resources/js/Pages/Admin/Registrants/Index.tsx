@@ -13,7 +13,8 @@ import {
     AlertTriangle, 
     XCircle,
     ChevronLeft,
-    ChevronRight
+    ChevronRight,
+    Trash2
 } from 'lucide-react';
 
 interface RegistrantsIndexProps {
@@ -65,6 +66,14 @@ export default function RegistrantsIndex({
             event_id: selectedEventId,
             [key]: value || undefined,
         }, { preserveState: true, replace: true });
+    };
+
+    const handleDelete = (registration: RegistrantsIndexProps['registrations']['data'][number]) => {
+        if (confirm(`Hapus pendaftaran ${registration.full_name} (${registration.registration_number})? Data terkait dan foto pendaftaran juga akan dihapus.`)) {
+            router.delete(route('admin.registrants.destroy', registration.id), {
+                preserveScroll: true,
+            });
+        }
     };
 
     return (
@@ -236,13 +245,24 @@ export default function RegistrantsIndex({
                                     </td>
 
                                     <td className="py-3 px-4 text-right">
-                                        <Link
-                                            href={route('admin.registrants.show', reg.id)}
-                                            className="inline-flex items-center gap-1 text-xs font-semibold text-brand-600 hover:text-brand-800"
-                                        >
-                                            <Eye className="w-3.5 h-3.5" />
-                                            <span>Lihat</span>
-                                        </Link>
+                                        <div className="inline-flex items-center justify-end gap-1.5">
+                                            <Link
+                                                href={route('admin.registrants.show', reg.id)}
+                                                className="inline-flex items-center gap-1 px-2 py-1.5 rounded-lg text-xs font-semibold text-brand-600 hover:text-brand-800 hover:bg-brand-50"
+                                            >
+                                                <Eye className="w-3.5 h-3.5" />
+                                                <span>Lihat</span>
+                                            </Link>
+                                            <button
+                                                type="button"
+                                                onClick={() => handleDelete(reg)}
+                                                className="inline-flex items-center gap-1 px-2 py-1.5 rounded-lg text-xs font-semibold text-rose-600 hover:text-rose-700 hover:bg-rose-50"
+                                                title="Hapus pendaftaran"
+                                            >
+                                                <Trash2 className="w-3.5 h-3.5" />
+                                                <span>Hapus</span>
+                                            </button>
+                                        </div>
                                     </td>
                                 </tr>
                             ))}
