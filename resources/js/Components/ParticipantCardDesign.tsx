@@ -20,6 +20,12 @@ interface ParticipantCardDesignProps {
     participant: ParticipantCardData;
 }
 
+function shortenText(value: string, maximumLength: number): string {
+    return value.length > maximumLength
+        ? `${value.slice(0, maximumLength - 3)}...`
+        : value;
+}
+
 export default function ParticipantCardDesign({ participant }: ParticipantCardDesignProps) {
     return (
         <div
@@ -44,9 +50,7 @@ export default function ParticipantCardDesign({ participant }: ParticipantCardDe
                         crossOrigin="anonymous"
                     />
                     <div className="min-w-0">
-                        <div className="h-[14px] overflow-hidden">
-                            <p className="text-[9px] leading-[14px] font-black tracking-[0.12em] uppercase whitespace-nowrap">SAF League</p>
-                        </div>
+                        <p className="text-[9px] leading-[14px] font-black tracking-[0.12em] uppercase whitespace-nowrap">SAF League</p>
                         <p className="text-[6px] leading-[9px] font-semibold text-blue-200 tracking-[0.08em] uppercase">Kartu Peserta Turnamen</p>
                     </div>
                 </div>
@@ -69,9 +73,9 @@ export default function ParticipantCardDesign({ participant }: ParticipantCardDe
                             <UserRound className="w-6 h-6 text-slate-300" />
                         )}
                     </div>
-                    <div className="px-1 py-1 rounded bg-blue-50 border border-blue-100 text-center overflow-hidden">
+                    <div className="px-1 py-1 rounded bg-blue-50 border border-blue-100 text-center">
                         <span className="block text-[6px] leading-[9px] font-black text-blue-800 uppercase whitespace-nowrap">
-                            {participant.primary_position}
+                            {shortenText(participant.primary_position, 14)}
                         </span>
                     </div>
                 </div>
@@ -79,30 +83,24 @@ export default function ParticipantCardDesign({ participant }: ParticipantCardDe
                 <div className="min-w-0 flex-1 flex flex-col justify-between">
                     <div className="min-w-0">
                         <p className="text-[6px] leading-[9px] uppercase tracking-[0.12em] text-slate-400 font-bold">Nama Peserta</p>
-                        <div className="h-[17px] overflow-hidden">
-                            <h1 className="text-[12px] leading-[17px] font-black text-navy-950 whitespace-nowrap">
-                                {participant.full_name}
-                            </h1>
-                        </div>
-                        <div className="h-[14px] overflow-hidden mt-0.5">
-                            <p className="text-[7px] leading-[13px] text-slate-500 font-semibold whitespace-nowrap">
-                                {participant.school_name || 'Sekolah belum dicantumkan'}
-                            </p>
-                        </div>
+                        <h1 className="text-[12px] leading-[17px] font-black text-navy-950 whitespace-nowrap">
+                            {shortenText(participant.full_name, 25)}
+                        </h1>
+                        <p className="text-[7px] leading-[13px] text-slate-500 font-semibold whitespace-nowrap mt-0.5">
+                            {shortenText(participant.school_name || 'Sekolah belum dicantumkan', 38)}
+                        </p>
                     </div>
 
                     <div className="rounded-md bg-slate-50 border-l-[3px] border-blue-600 px-2 py-1.5 min-w-0">
                         <p className="text-[5.5px] leading-[8px] uppercase tracking-wider text-slate-400 font-bold">Event</p>
-                        <div className="h-[13px] overflow-hidden">
-                            <p className="text-[7px] leading-[12px] font-extrabold text-slate-800 whitespace-nowrap">{participant.event_name}</p>
-                        </div>
+                        <p className="text-[7px] leading-[12px] font-extrabold text-slate-800 whitespace-nowrap">
+                            {shortenText(participant.event_name, 39)}
+                        </p>
                         {participant.location && (
-                            <div className="h-[12px] overflow-hidden">
-                                <p className="text-[6px] leading-[11px] text-slate-500 flex items-center gap-1 whitespace-nowrap">
-                                    <MapPin className="w-2 h-2 shrink-0 text-blue-600" />
-                                    <span>{participant.location}</span>
-                                </p>
-                            </div>
+                            <p className="text-[6px] leading-[11px] text-slate-500 flex items-center gap-1 whitespace-nowrap">
+                                <MapPin className="w-2 h-2 shrink-0 text-blue-600" />
+                                <span>{shortenText(participant.location, 35)}</span>
+                            </p>
                         )}
                     </div>
 
