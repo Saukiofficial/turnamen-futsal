@@ -6,6 +6,8 @@ use App\Http\Controllers\Controller;
 use App\Models\AuditLog;
 use App\Models\Event;
 use App\Models\EventPosition;
+use App\Models\Registration;
+use App\Models\Team;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
@@ -178,5 +180,40 @@ class EventController extends Controller
         AuditLog::log('toggle_event_status', $event, ['status' => $prevStatus], ['status' => $newStatus]);
 
         return back()->with('success', "Status event berhasil diubah menjadi: {$newStatus}");
+    }
+
+    /**
+     * Delete or archive the event depending on whether it has registrant data.
+     *
+     * - If no individual registrations and no teams exist → hard delete.
+     * - If data already exists → set status to 'archived' to preserve integrity.
+     */
+    public function destroy(int $id): RedirectResponse
+    {
+        $event = Event::findOrFail($id);
+
+        $hasRegistrations = Registration::where('event_id', $id)->exists();
+        $hasTeams = Team::where('event_id', $id)->exists();
+
+        if ($hasRegistrations || $hasTeams) {
+            // Archive instead of deleting to preserve data integrity
+            $prevStatus = $event->status;
+            $event->status = 'archived';
+            $event->save();
+
+            AuditLog::log('archive_event', $event, ['status' => $prevStatus], ['status' => 'archived']);
+
+            return redirect()->route('admin.events.index')
+                ->with('success', 'Event "'.$event->name.'" telah diarsipkan karena sudah memiliki data pendaftar.');
+        }
+
+        // No registrations — safe to hard delete
+        AuditLog::log('delete_event', $event, $event->toArray(), null);
+
+        $event->positions()->delete();
+        $event->delete();
+
+        return redirect()->route('admin.events.index')
+            ->with('success', 'Event "'.$event->name.'" berhasil dihapus permanen.');
     }
 }

@@ -3,7 +3,7 @@ import { Head, Link, router } from '@inertiajs/react';
 import AdminShell from '@/Layouts/AdminShell';
 import PageHeader from '@/Components/Admin/PageHeader';
 import StatusBadge from '@/Components/StatusBadge';
-import { PlusCircle, Calendar, Users, Edit2, Power, Eye } from 'lucide-react';
+import { PlusCircle, Calendar, Users, Edit2, Power, Trash2 } from 'lucide-react';
 
 interface EventsProps {
     events: {
@@ -34,6 +34,17 @@ export default function EventsIndex({ events, filters }: EventsProps) {
         const nextStatus = currentStatus === 'open' ? 'paused' : 'open';
         if (confirm(`Ubah status event ini menjadi ${nextStatus}?`)) {
             router.post(route('admin.events.toggle-status', id), { status: nextStatus });
+        }
+    };
+
+    const handleDelete = (id: number, name: string, registrationsCount: number) => {
+        const hasData = registrationsCount > 0;
+        const msg = hasData
+            ? `Event "${name}" sudah memiliki ${registrationsCount} pendaftar.\n\nEvent akan diarsipkan (tidak dihapus permanen) untuk menjaga integritas data.\n\nLanjutkan?`
+            : `Event "${name}" belum memiliki pendaftar.\n\nEvent akan DIHAPUS PERMANEN beserta semua posisinya.\n\nApakah kamu yakin?`;
+
+        if (confirm(msg)) {
+            router.delete(route('admin.events.destroy', id));
         }
     };
 
@@ -129,6 +140,18 @@ export default function EventsIndex({ events, filters }: EventsProps) {
                                             >
                                                 <Edit2 className="w-3.5 h-3.5" />
                                             </Link>
+                                            <button
+                                                type="button"
+                                                onClick={() => handleDelete(evt.id, evt.name, evt.registrations_count)}
+                                                className={`p-1.5 rounded-lg border transition-colors ${
+                                                    evt.registrations_count > 0
+                                                        ? 'border-amber-200 text-amber-600 hover:bg-amber-50'
+                                                        : 'border-rose-200 text-rose-600 hover:bg-rose-50'
+                                                }`}
+                                                title={evt.registrations_count > 0 ? 'Arsipkan Event (ada data pendaftar)' : 'Hapus Permanen Event'}
+                                            >
+                                                <Trash2 className="w-3.5 h-3.5" />
+                                            </button>
                                         </div>
                                     </td>
                                 </tr>

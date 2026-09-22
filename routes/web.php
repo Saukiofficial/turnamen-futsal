@@ -72,7 +72,7 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
     // 2. Pendaftaran/Event
-    Route::resource('events', EventController::class)->except(['destroy', 'show']);
+    Route::resource('events', EventController::class)->except(['show']);
     Route::post('/events/{id}/toggle-status', [EventController::class, 'toggleStatus'])->name('events.toggle-status');
 
     // 3. Data Pendaftar

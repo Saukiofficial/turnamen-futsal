@@ -25,7 +25,7 @@ class DatabaseSeeder extends Seeder
         $admin = User::create([
             'name' => 'Super Admin Futsal',
             'email' => 'admin@futsalreg.test',
-            'password' => Hash::make('password'),
+            'password' => Hash::make('saf2026!'),
             'role' => 'super_admin',
             'status' => 'active',
             'phone' => '081234567890',
