@@ -21,8 +21,8 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // 1. Create Core Users (idempoten — skip jika sudah ada)
-        $admin = User::firstOrCreate(
+        // 1. Create Core Users (updateOrCreate — password & data selalu sinkron)
+        $admin = User::updateOrCreate(
             ['email' => 'admin@futsalreg.test'],
             [
                 'name' => 'Super Admin Futsal',
@@ -33,7 +33,7 @@ class DatabaseSeeder extends Seeder
             ]
         );
 
-        $verifikator = User::firstOrCreate(
+        $verifikator = User::updateOrCreate(
             ['email' => 'verifikator@futsalreg.test'],
             [
                 'name' => 'Budi Santoso (Verifikator)',
@@ -44,7 +44,7 @@ class DatabaseSeeder extends Seeder
             ]
         );
 
-        $pelatih = User::firstOrCreate(
+        $pelatih = User::updateOrCreate(
             ['email' => 'pelatih@futsalreg.test'],
             [
                 'name' => 'Coach Danu (Head Coach)',
@@ -55,7 +55,7 @@ class DatabaseSeeder extends Seeder
             ]
         );
 
-        User::firstOrCreate(
+        User::updateOrCreate(
             ['email' => 'checkin@futsalreg.test'],
             [
                 'name' => 'Rian Hidayat (Petugas Check-in)',
