@@ -32,26 +32,25 @@ export default function TeamCard({ team }: TeamCardProps) {
     const exportCard = async (type: 'pdf' | 'img') => {
         setExporting(type);
         try {
-            const html2canvas = (await import('html2canvas')).default;
-            const canvas = await html2canvas(cardRef.current!, {
-                scale: 4,
-                useCORS: true,
-                allowTaint: true,
+            const { toPng } = await import('html-to-image');
+            const imageData = await toPng(cardRef.current!, {
+                pixelRatio: 2,
+                cacheBust: true,
                 backgroundColor: '#ffffff',
                 width: CARD_W * SCALE,
                 height: CARD_H * SCALE,
+                skipAutoScale: true,
             });
 
             if (type === 'img') {
                 const link = document.createElement('a');
                 link.download = `kartu-tim-${team.registration_number}.png`;
-                link.href = canvas.toDataURL('image/png');
+                link.href = imageData;
                 link.click();
             } else {
                 const { jsPDF } = await import('jspdf');
                 const pdf = new jsPDF({ orientation: 'landscape', unit: 'mm', format: [85.6, 54] });
-                const imgData = canvas.toDataURL('image/png');
-                pdf.addImage(imgData, 'PNG', 0, 0, 85.6, 54);
+                pdf.addImage(imageData, 'PNG', 0, 0, 85.6, 54);
                 pdf.save(`kartu-tim-${team.registration_number}.pdf`);
             }
         } catch (err) {

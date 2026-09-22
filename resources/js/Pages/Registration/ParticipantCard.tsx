@@ -42,27 +42,26 @@ export default function ParticipantCard({ registration }: ParticipantCardProps) 
                 ),
             );
 
-            const html2canvas = (await import('html2canvas')).default;
-            const canvas = await html2canvas(cardRef.current!, {
-                scale: 4,
-                useCORS: true,
-                allowTaint: true,
+            const { toPng } = await import('html-to-image');
+            const imageData = await toPng(cardRef.current!, {
+                pixelRatio: 4,
+                cacheBust: true,
                 backgroundColor: '#ffffff',
                 width: PARTICIPANT_CARD_WIDTH,
                 height: PARTICIPANT_CARD_HEIGHT,
+                skipAutoScale: true,
             });
 
             if (type === 'img') {
                 const link = document.createElement('a');
                 link.download = `kartu-peserta-${registration.registration_number}.png`;
-                link.href = canvas.toDataURL('image/png');
+                link.href = imageData;
                 link.click();
             } else {
                 const { jsPDF } = await import('jspdf');
                 // CR80 in mm: 85.6 × 54
                 const pdf = new jsPDF({ orientation: 'landscape', unit: 'mm', format: [85.6, 54] });
-                const imgData = canvas.toDataURL('image/png');
-                pdf.addImage(imgData, 'PNG', 0, 0, 85.6, 54);
+                pdf.addImage(imageData, 'PNG', 0, 0, 85.6, 54);
                 pdf.save(`kartu-peserta-${registration.registration_number}.pdf`);
             }
         } catch (err) {

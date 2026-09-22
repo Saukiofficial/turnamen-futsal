@@ -1,0 +1,1 @@
+import{j as a}from"./app-XxO_sItx.js";function t({className:o="h-16 w-auto"}){return a.jsx("img",{src:"/images/saf_league_logo.png",alt:"SAF League",className:`${o} object-contain drop-shadow-md`})}export{t as A};
