@@ -32,6 +32,16 @@ export default function ParticipantCard({ registration }: ParticipantCardProps) 
     const exportCard = async (type: 'pdf' | 'img') => {
         setExporting(type);
         try {
+            await document.fonts.ready;
+            await Promise.all(
+                Array.from(cardRef.current!.querySelectorAll('img')).map((image) =>
+                    image.complete ? image.decode().catch(() => undefined) : new Promise<void>((resolve) => {
+                        image.addEventListener('load', () => resolve(), { once: true });
+                        image.addEventListener('error', () => resolve(), { once: true });
+                    }),
+                ),
+            );
+
             const html2canvas = (await import('html2canvas')).default;
             const canvas = await html2canvas(cardRef.current!, {
                 scale: 4,

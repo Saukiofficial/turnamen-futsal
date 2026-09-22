@@ -43,9 +43,9 @@ export default function ParticipantCardDesign({ participant }: ParticipantCardDe
                         className="w-7 h-7 object-contain shrink-0"
                         crossOrigin="anonymous"
                     />
-                    <div className="min-w-0 leading-none">
-                        <p className="text-[9px] font-black tracking-[0.12em] uppercase truncate">SAF League</p>
-                        <p className="text-[6px] font-semibold text-blue-200 tracking-[0.08em] uppercase mt-1">Kartu Peserta Turnamen</p>
+                    <div className="min-w-0">
+                        <p className="text-[9px] leading-[14px] font-black tracking-[0.12em] uppercase truncate">SAF League</p>
+                        <p className="text-[6px] leading-[9px] font-semibold text-blue-200 tracking-[0.08em] uppercase">Kartu Peserta Turnamen</p>
                     </div>
                 </div>
                 <span className="px-2 py-1 rounded-full bg-emerald-400/20 border border-emerald-300/40 text-[6px] font-black text-emerald-200 tracking-wider">
@@ -67,27 +67,27 @@ export default function ParticipantCardDesign({ participant }: ParticipantCardDe
                             <UserRound className="w-6 h-6 text-slate-300" />
                         )}
                     </div>
-                    <span className="px-1 py-1 rounded bg-blue-50 border border-blue-100 text-[6px] leading-tight font-black text-blue-800 text-center uppercase truncate">
+                    <span className="px-1 py-1 rounded bg-blue-50 border border-blue-100 text-[6px] leading-[9px] font-black text-blue-800 text-center uppercase truncate">
                         {participant.primary_position}
                     </span>
                 </div>
 
                 <div className="min-w-0 flex-1 flex flex-col justify-between">
                     <div className="min-w-0">
-                        <p className="text-[6px] uppercase tracking-[0.12em] text-slate-400 font-bold">Nama Peserta</p>
-                        <h1 className="text-[12px] leading-tight font-black text-navy-950 truncate mt-0.5">
+                        <p className="text-[6px] leading-[9px] uppercase tracking-[0.12em] text-slate-400 font-bold">Nama Peserta</p>
+                        <h1 className="text-[12px] leading-[17px] font-black text-navy-950 truncate">
                             {participant.full_name}
                         </h1>
-                        <p className="text-[7px] leading-tight text-slate-500 font-semibold truncate mt-1">
+                        <p className="text-[7px] leading-[11px] text-slate-500 font-semibold truncate mt-0.5">
                             {participant.school_name || 'Sekolah belum dicantumkan'}
                         </p>
                     </div>
 
                     <div className="rounded-md bg-slate-50 border-l-[3px] border-blue-600 px-2 py-1.5 min-w-0">
-                        <p className="text-[5.5px] uppercase tracking-wider text-slate-400 font-bold">Event</p>
-                        <p className="text-[7px] font-extrabold text-slate-800 truncate">{participant.event_name}</p>
+                        <p className="text-[5.5px] leading-[8px] uppercase tracking-wider text-slate-400 font-bold">Event</p>
+                        <p className="text-[7px] leading-[11px] font-extrabold text-slate-800 truncate">{participant.event_name}</p>
                         {participant.location && (
-                            <p className="text-[6px] text-slate-500 truncate flex items-center gap-1 mt-0.5">
+                            <p className="text-[6px] leading-[10px] text-slate-500 truncate flex items-center gap-1">
                                 <MapPin className="w-2 h-2 shrink-0 text-blue-600" />
                                 <span className="truncate">{participant.location}</span>
                             </p>
@@ -95,9 +95,9 @@ export default function ParticipantCardDesign({ participant }: ParticipantCardDe
                     </div>
 
                     <div>
-                        <p className="text-[5.5px] uppercase tracking-wider text-slate-400 font-bold">Nomor Pendaftaran</p>
-                        <p className="text-[9px] font-black font-mono text-blue-700 tracking-wide">{participant.registration_number}</p>
-                        <p className="text-[5.5px] text-emerald-700 font-bold flex items-center gap-1 mt-0.5">
+                        <p className="text-[5.5px] leading-[8px] uppercase tracking-wider text-slate-400 font-bold">Nomor Pendaftaran</p>
+                        <p className="text-[9px] leading-[13px] font-black font-mono text-blue-700 tracking-wide">{participant.registration_number}</p>
+                        <p className="text-[5.5px] leading-[9px] text-emerald-700 font-bold flex items-center gap-1">
                             <ShieldCheck className="w-2 h-2" />
                             <span>Terverifikasi oleh panitia</span>
                         </p>
@@ -108,7 +108,7 @@ export default function ParticipantCardDesign({ participant }: ParticipantCardDe
                     <div className="p-1 bg-white rounded-md border border-slate-200">
                         <QRCodeSVG value={participant.qr_token} size={48} level="M" />
                     </div>
-                    <p className="text-[5.5px] leading-tight text-slate-400 font-semibold text-center">Pindai saat check-in</p>
+                    <p className="text-[5.5px] leading-[9px] text-slate-400 font-semibold text-center">Pindai saat check-in</p>
                 </div>
             </div>
 

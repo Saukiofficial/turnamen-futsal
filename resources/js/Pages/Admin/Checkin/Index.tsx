@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Head, router } from '@inertiajs/react';
 import AdminShell from '@/Layouts/AdminShell';
 import PageHeader from '@/Components/Admin/PageHeader';
 import axios from 'axios';
+import QrScanner from 'qr-scanner';
 import { 
     ScanLine, 
     Search, 
@@ -11,6 +12,7 @@ import {
     AlertCircle, 
     ShieldCheck, 
     Camera, 
+    CameraOff,
     Keyboard 
 } from 'lucide-react';
 
@@ -50,10 +52,13 @@ export default function CheckinIndex({
     const [loading, setLoading] = useState(false);
     const [searchResult, setSearchResult] = useState<any | null>(null);
     const [feedbackMessage, setFeedbackMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+    const [scannerOpen, setScannerOpen] = useState(false);
+    const [cameraError, setCameraError] = useState<string | null>(null);
+    const videoRef = useRef<HTMLVideoElement>(null);
 
-    const handleLookup = async (e: React.FormEvent) => {
-        e.preventDefault();
-        if (!keyword.trim()) return;
+    const lookupRegistration = async (value: string) => {
+        const normalizedValue = value.trim();
+        if (!normalizedValue) return;
 
         try {
             setLoading(true);
@@ -61,7 +66,7 @@ export default function CheckinIndex({
             setSearchResult(null);
 
             const response = await axios.post(route('admin.checkin.lookup'), {
-                keyword: keyword.trim(),
+                keyword: normalizedValue,
                 event_id: selectedEventId,
             });
 
@@ -75,6 +80,73 @@ export default function CheckinIndex({
             setLoading(false);
         }
     };
+
+    const handleLookup = (e: React.FormEvent) => {
+        e.preventDefault();
+        void lookupRegistration(keyword);
+    };
+
+    const openScanner = async () => {
+        setCameraError(null);
+
+        if (! window.isSecureContext) {
+            setCameraError('Kamera hanya dapat digunakan melalui HTTPS atau localhost.');
+            return;
+        }
+
+        if (! await QrScanner.hasCamera()) {
+            setCameraError('Kamera tidak ditemukan pada perangkat ini.');
+            return;
+        }
+
+        setScannerOpen(true);
+    };
+
+    useEffect(() => {
+        if (! scannerOpen || ! videoRef.current) {
+            return;
+        }
+
+        let scannerIsActive = true;
+        const scanner = new QrScanner(
+            videoRef.current,
+            (result) => {
+                if (! scannerIsActive) {
+                    return;
+                }
+
+                const scannedToken = result.data.trim();
+                scannerIsActive = false;
+                scanner.stop();
+                setKeyword(scannedToken);
+                setScannerOpen(false);
+                navigator.vibrate?.(100);
+                void lookupRegistration(scannedToken);
+            },
+            {
+                preferredCamera: 'environment',
+                maxScansPerSecond: 10,
+                highlightScanRegion: true,
+                highlightCodeOutline: true,
+                returnDetailedScanResult: true,
+            },
+        );
+
+        scanner.start().catch((error: unknown) => {
+            const message = error instanceof Error ? error.message : String(error);
+            setCameraError(
+                message.toLowerCase().includes('permission') || message.toLowerCase().includes('denied')
+                    ? 'Izin kamera ditolak. Aktifkan izin kamera pada pengaturan browser lalu coba lagi.'
+                    : 'Kamera tidak dapat dibuka. Pastikan kamera tidak sedang digunakan aplikasi lain.',
+            );
+            setScannerOpen(false);
+        });
+
+        return () => {
+            scannerIsActive = false;
+            scanner.destroy();
+        };
+    }, [scannerOpen, selectedEventId]);
 
     const handleConfirm = (registrationId: number, playerName: string) => {
         if (!registrationId) return;
@@ -159,7 +231,47 @@ export default function CheckinIndex({
                                 <ScanLine className="w-5 h-5 text-brand-600" />
                                 <h3 className="text-sm font-bold text-navy-950">Pencarian & Scan Kartu</h3>
                             </div>
-                            <span className="text-xs text-slate-400">Barcode Scanner / Keyboard</span>
+                            <span className="text-xs text-slate-400">Kamera / Scanner USB / Keyboard</span>
+                        </div>
+
+                        <div className="space-y-3">
+                            {!scannerOpen ? (
+                                <button
+                                    type="button"
+                                    onClick={() => void openScanner()}
+                                    className="w-full h-12 rounded-xl bg-navy-950 hover:bg-navy-900 text-white font-bold text-sm flex items-center justify-center gap-2 shadow-sm transition-colors"
+                                >
+                                    <Camera className="w-5 h-5" />
+                                    <span>Buka Kamera & Pindai QR Kartu</span>
+                                </button>
+                            ) : (
+                                <div className="relative overflow-hidden rounded-2xl bg-black border border-slate-800 aspect-[4/3]">
+                                    <video
+                                        ref={videoRef}
+                                        muted
+                                        playsInline
+                                        className="w-full h-full object-cover"
+                                    />
+                                    <div className="absolute inset-x-0 top-0 p-3 bg-gradient-to-b from-black/70 to-transparent flex items-center justify-between text-white">
+                                        <span className="text-xs font-semibold">Arahkan QR kartu ke dalam kotak</span>
+                                        <button
+                                            type="button"
+                                            onClick={() => setScannerOpen(false)}
+                                            className="p-2 rounded-lg bg-black/50 hover:bg-black/70"
+                                            aria-label="Tutup kamera"
+                                        >
+                                            <CameraOff className="w-4 h-4" />
+                                        </button>
+                                    </div>
+                                </div>
+                            )}
+
+                            {cameraError && (
+                                <div className="p-3 rounded-xl bg-rose-50 border border-rose-200 text-xs font-semibold text-rose-800 flex items-start gap-2">
+                                    <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
+                                    <span>{cameraError}</span>
+                                </div>
+                            )}
                         </div>
 
                         {/* Search Input Form */}
