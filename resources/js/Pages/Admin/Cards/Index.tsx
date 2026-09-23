@@ -22,6 +22,11 @@ interface CardsIndexProps {
             selection_schedule: string;
         }[];
         links: any[];
+        current_page: number;
+        last_page: number;
+        from: number | null;
+        to: number | null;
+        total: number;
     };
     previewRegistration: {
         id: number;
@@ -119,9 +124,12 @@ export default function CardsIndex({
                                 className="w-4 h-4 rounded text-brand-600 focus:ring-brand-500 border-slate-300"
                             />
                             <span className="text-xs font-bold text-slate-700">
-                                Pilih Semua ({registrations.data.length})
+                                Pilih Halaman Ini ({registrations.data.length})
                             </span>
                         </div>
+                        <span className="text-[11px] font-semibold text-slate-400">
+                            {registrations.total} peserta lolos administrasi
+                        </span>
                     </div>
 
                     <div className="divide-y divide-slate-100">
@@ -179,6 +187,31 @@ export default function CardsIndex({
                             </div>
                         )}
                     </div>
+
+                    {registrations.last_page > 1 && (
+                        <div className="p-4 border-t border-slate-100 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 text-xs text-slate-500">
+                            <span>
+                                Menampilkan {registrations.from}-{registrations.to} dari {registrations.total} peserta
+                            </span>
+                            <div className="flex flex-wrap items-center gap-1">
+                                {registrations.links.map((link, index) => (
+                                    <Link
+                                        key={index}
+                                        href={link.url || '#'}
+                                        preserveScroll
+                                        className={`min-w-8 px-2.5 py-1.5 rounded-lg border text-center text-xs ${
+                                            link.active
+                                                ? 'bg-brand-600 text-white border-brand-600 font-bold'
+                                                : link.url
+                                                    ? 'border-slate-200 text-slate-600 hover:bg-slate-50'
+                                                    : 'border-transparent text-slate-300 pointer-events-none'
+                                        }`}
+                                        dangerouslySetInnerHTML={{ __html: link.label }}
+                                    />
+                                ))}
+                            </div>
+                        </div>
+                    )}
                 </div>
 
                 {/* Right Card Live Preview (5 Cols) */}

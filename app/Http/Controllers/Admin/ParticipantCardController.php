@@ -49,7 +49,10 @@ class ParticipantCardController extends Controller
         $previewRegistration = null;
         if ($registrations->isNotEmpty()) {
             $target = $selectedId
-                ? Registration::with(['participant', 'event'])->find($selectedId)
+                ? Registration::with(['participant', 'event'])
+                    ->where('event_id', $selectedEventId)
+                    ->where('verification_status', 'lolos_administrasi')
+                    ->find($selectedId)
                 : Registration::with(['participant', 'event'])->find($registrations->first()['id']);
 
             if ($target) {

@@ -68,6 +68,43 @@ class FutsalRegistrationTest extends TestCase
         $response->assertStatus(200);
     }
 
+    public function test_admin_can_navigate_all_approved_participant_cards(): void
+    {
+        $admin = User::where('role', 'super_admin')->firstOrFail();
+        $event = Event::firstOrFail();
+
+        foreach (range(1, 13) as $index) {
+            $participant = Participant::create([
+                'full_name' => "Card Candidate {$index}",
+                'nisn' => str_pad((string) (7000000000 + $index), 10, '0', STR_PAD_LEFT),
+                'nik_encrypted' => Crypt::encryptString("card-candidate-{$index}"),
+                'nik_hash' => hash('sha256', "card-candidate-{$index}"),
+                'birth_place' => 'Bandung',
+                'birth_date' => '2008-01-01',
+            ]);
+
+            Registration::create([
+                'event_id' => $event->id,
+                'participant_id' => $participant->id,
+                'registration_number' => "CARD-TEST-{$index}-".str()->random(6),
+                'access_code_hash' => bcrypt("CARD{$index}"),
+                'access_code_plain' => "CARD{$index}",
+                'qr_token' => Registration::generateQrToken(),
+                'primary_position' => 'Flank',
+                'verification_status' => 'lolos_administrasi',
+                'submitted_at' => now(),
+            ]);
+        }
+
+        $response = $this->actingAs($admin)->get(route('admin.cards.index', ['event_id' => $event->id]));
+        $registrations = $response->inertiaProps('registrations');
+
+        $response->assertOk();
+        $this->assertCount(12, $registrations['data']);
+        $this->assertGreaterThan(1, $registrations['last_page']);
+        $this->assertNotNull($registrations['next_page_url']);
+    }
+
     public function test_registration_admin_can_delete_an_individual_registration(): void
     {
         Storage::fake('public');
