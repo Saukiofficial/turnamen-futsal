@@ -17,6 +17,10 @@ class ParticipantCardController extends Controller
         $eventId = $request->query('event_id');
         $selectedId = $request->query('selected_id');
         $search = $request->query('search');
+        $perPage = (int) $request->query('per_page', 50);
+        if ($perPage <= 0 || $perPage > 100) {
+            $perPage = 50;
+        }
 
         $events = Event::select('id', 'name', 'code', 'status')->get();
         $selectedEventId = $eventId ?: ($events->firstWhere('status', 'open')?->id ?? $events->first()?->id);
@@ -25,11 +29,13 @@ class ParticipantCardController extends Controller
             ->where('event_id', $selectedEventId)
             ->where('verification_status', 'lolos_administrasi')
             ->when($search, function ($q, $search) {
-                $q->where('registration_number', 'like', "%{$search}%")
-                    ->orWhereHas('participant', fn ($p) => $p->where('full_name', 'like', "%{$search}%"));
+                $q->where(function ($sub) use ($search) {
+                    $sub->where('registration_number', 'like', "%{$search}%")
+                        ->orWhereHas('participant', fn ($p) => $p->where('full_name', 'like', "%{$search}%"));
+                });
             })
             ->latest()
-            ->paginate(12)
+            ->paginate($perPage)
             ->withQueryString()
             ->through(function ($reg) {
                 return [
@@ -41,6 +47,7 @@ class ParticipantCardController extends Controller
                     'photo_url' => $reg->photo_path ? Storage::url($reg->photo_path) : null,
                     'qr_token' => $reg->qr_token,
                     'event_name' => $reg->event->name,
+                    'organizer' => $reg->event->organizer,
                     'location' => $reg->event->location,
                     'selection_schedule' => $reg->event->selection_start_at?->translatedFormat('d M Y, H:i').' WIB',
                 ];
@@ -53,7 +60,13 @@ class ParticipantCardController extends Controller
                     ->where('event_id', $selectedEventId)
                     ->where('verification_status', 'lolos_administrasi')
                     ->find($selectedId)
-                : Registration::with(['participant', 'event'])->find($registrations->first()['id']);
+                : null;
+
+            if (! $target) {
+                $firstItem = $registrations->first();
+                $firstId = is_array($firstItem) ? ($firstItem['id'] ?? null) : ($firstItem->id ?? null);
+                $target = $firstId ? Registration::with(['participant', 'event'])->find($firstId) : null;
+            }
 
             if ($target) {
                 $previewRegistration = [
@@ -79,6 +92,7 @@ class ParticipantCardController extends Controller
             'previewRegistration' => $previewRegistration,
             'filters' => [
                 'search' => $search,
+                'per_page' => $perPage,
             ],
         ]);
     }

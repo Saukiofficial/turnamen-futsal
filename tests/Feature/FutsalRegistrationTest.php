@@ -73,7 +73,7 @@ class FutsalRegistrationTest extends TestCase
         $admin = User::where('role', 'super_admin')->firstOrFail();
         $event = Event::firstOrFail();
 
-        foreach (range(1, 13) as $index) {
+        foreach (range(1, 52) as $index) {
             $participant = Participant::create([
                 'full_name' => "Card Candidate {$index}",
                 'nisn' => str_pad((string) (7000000000 + $index), 10, '0', STR_PAD_LEFT),
@@ -100,9 +100,20 @@ class FutsalRegistrationTest extends TestCase
         $registrations = $response->inertiaProps('registrations');
 
         $response->assertOk();
-        $this->assertCount(12, $registrations['data']);
+        $this->assertCount(50, $registrations['data']);
         $this->assertGreaterThan(1, $registrations['last_page']);
         $this->assertNotNull($registrations['next_page_url']);
+
+        // Verify next page (page 2) opens with remaining cards
+        $page2Response = $this->actingAs($admin)->get(route('admin.cards.index', [
+            'event_id' => $event->id,
+            'page' => 2,
+        ]));
+        $page2Registrations = $page2Response->inertiaProps('registrations');
+
+        $page2Response->assertOk();
+        $this->assertCount(2, $page2Registrations['data']);
+        $this->assertEquals(2, $page2Registrations['current_page']);
     }
 
     public function test_registration_admin_can_delete_an_individual_registration(): void
